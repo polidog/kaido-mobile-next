@@ -1,0 +1,427 @@
+<title>実装計画 — kaido-mobile-next</title>
+<style>
+  :root {
+    --bg: #F7F4EE;
+    --bg-surface: #EFEBE3;
+    --bg-card: #fff;
+    --text: #2C2926;
+    --text-secondary: #6B635A;
+    --text-tertiary: #9A9488;
+    --accent: #B8860B;
+    --accent-light: #D4A94225;
+    --border: #D4CFC6;
+    --border-light: #E8E3D9;
+    --green: #2D7A3A;
+    --green-bg: #2D7A3A12;
+    --blue: #1D5CA8;
+    --blue-bg: #1D5CA812;
+    --orange: #B85C38;
+    --orange-bg: #B85C3812;
+    --purple: #6B4FA0;
+    --purple-bg: #6B4FA012;
+    --red: #A83232;
+    --red-bg: #A8323212;
+    --teal: #1A7A6D;
+    --teal-bg: #1A7A6D12;
+    --check-done: #2D7A3A;
+    --code-bg: #E8E3D9;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1A1A24;
+      --bg-surface: #22222E;
+      --bg-card: #282838;
+      --text: #DDD8CE;
+      --text-secondary: #9A9488;
+      --text-tertiary: #6B635A;
+      --accent: #D4A942;
+      --accent-light: #D4A94218;
+      --border: #3A3A48;
+      --border-light: #32323E;
+      --green: #5AAF62;
+      --green-bg: #5AAF6218;
+      --blue: #5A9ADF;
+      --blue-bg: #5A9ADF18;
+      --orange: #D4785A;
+      --orange-bg: #D4785A18;
+      --purple: #9A82D0;
+      --purple-bg: #9A82D018;
+      --red: #D06060;
+      --red-bg: #D0606018;
+      --teal: #4AAFA0;
+      --teal-bg: #4AAFA018;
+      --check-done: #5AAF62;
+      --code-bg: #2A2A36;
+      --shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #1A1A24; --bg-surface: #22222E; --bg-card: #282838;
+    --text: #DDD8CE; --text-secondary: #9A9488; --text-tertiary: #6B635A;
+    --accent: #D4A942; --accent-light: #D4A94218;
+    --border: #3A3A48; --border-light: #32323E;
+    --green: #5AAF62; --green-bg: #5AAF6218;
+    --blue: #5A9ADF; --blue-bg: #5A9ADF18;
+    --orange: #D4785A; --orange-bg: #D4785A18;
+    --purple: #9A82D0; --purple-bg: #9A82D018;
+    --red: #D06060; --red-bg: #D0606018;
+    --teal: #4AAFA0; --teal-bg: #4AAFA018;
+    --check-done: #5AAF62; --code-bg: #2A2A36;
+    --shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+  :root[data-theme="light"] {
+    --bg: #F7F4EE; --bg-surface: #EFEBE3; --bg-card: #fff;
+    --text: #2C2926; --text-secondary: #6B635A; --text-tertiary: #9A9488;
+    --accent: #B8860B; --accent-light: #D4A94225;
+    --border: #D4CFC6; --border-light: #E8E3D9;
+    --green: #2D7A3A; --green-bg: #2D7A3A12;
+    --blue: #1D5CA8; --blue-bg: #1D5CA812;
+    --orange: #B85C38; --orange-bg: #B85C3812;
+    --purple: #6B4FA0; --purple-bg: #6B4FA012;
+    --red: #A83232; --red-bg: #A8323212;
+    --teal: #1A7A6D; --teal-bg: #1A7A6D12;
+    --check-done: #2D7A3A; --code-bg: #E8E3D9;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Hiragino Sans", "Yu Gothic", "Noto Sans JP", system-ui, sans-serif;
+    background: var(--bg); color: var(--text);
+    line-height: 1.7; -webkit-font-smoothing: antialiased;
+  }
+  .page { max-width: 820px; margin: 0 auto; padding: 2.5rem 1.5rem 6rem; }
+
+  /* Header */
+  .page-header { margin-bottom: 2.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+  .page-header h1 {
+    font-family: "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
+    font-size: 1.6rem; font-weight: 600; letter-spacing: 0.03em; margin-bottom: 0.3rem;
+  }
+  .page-header .subtitle { color: var(--text-secondary); font-size: 0.85rem; }
+
+  /* Progress bar */
+  .progress-bar { margin: 1.5rem 0 2rem; }
+  .progress-bar .bar-track {
+    height: 8px; background: var(--border-light); border-radius: 4px; overflow: hidden;
+  }
+  .progress-bar .bar-fill {
+    height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.4s ease;
+  }
+  .progress-bar .bar-label {
+    display: flex; justify-content: space-between; margin-top: 0.4rem;
+    font-size: 0.78rem; color: var(--text-tertiary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Phase */
+  .phase { margin-bottom: 2.5rem; }
+  .phase-header {
+    display: flex; align-items: center; gap: 0.75rem;
+    margin-bottom: 1rem; cursor: pointer; user-select: none;
+  }
+  .phase-header:hover .phase-title { text-decoration: underline; text-underline-offset: 3px; }
+  .phase-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px; border-radius: 50%;
+    font-size: 0.78rem; font-weight: 700; flex-shrink: 0;
+  }
+  .phase-title {
+    font-family: "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
+    font-size: 1.15rem; font-weight: 600; flex: 1;
+  }
+  .phase-meta { font-size: 0.75rem; color: var(--text-tertiary); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .phase-chevron { color: var(--text-tertiary); font-size: 0.9rem; transition: transform 0.2s; }
+  .phase.collapsed .phase-chevron { transform: rotate(-90deg); }
+  .phase.collapsed .phase-body { display: none; }
+  .phase-desc { font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 1rem; max-width: 65ch; }
+
+  /* Task */
+  .task {
+    background: var(--bg-card); border: 1px solid var(--border-light);
+    border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 0.5rem;
+    box-shadow: var(--shadow); display: flex; align-items: flex-start; gap: 0.65rem;
+  }
+  .task-check {
+    width: 18px; height: 18px; border: 2px solid var(--border);
+    border-radius: 4px; flex-shrink: 0; margin-top: 2px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .task-check:hover { border-color: var(--accent); }
+  .task.done .task-check {
+    background: var(--check-done); border-color: var(--check-done);
+  }
+  .task.done .task-check::after {
+    content: '✓'; color: #fff; font-size: 12px; font-weight: 700;
+  }
+  .task.done .task-name { text-decoration: line-through; color: var(--text-tertiary); }
+  .task-content { flex: 1; min-width: 0; }
+  .task-name { font-size: 0.88rem; font-weight: 500; }
+  .task-detail { font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.2rem; }
+  .task-tags { display: flex; gap: 0.35rem; margin-top: 0.35rem; flex-wrap: wrap; }
+  .tag {
+    font-size: 0.68rem; padding: 0.1em 0.5em; border-radius: 3px;
+    font-weight: 500; letter-spacing: 0.02em; white-space: nowrap;
+  }
+  .tag-pkg { background: var(--blue-bg); color: var(--blue); }
+  .tag-dep { background: var(--orange-bg); color: var(--orange); }
+  .tag-effort { background: var(--purple-bg); color: var(--purple); }
+  .tag-cmd { background: var(--code-bg); color: var(--text-secondary); font-family: "SF Mono","Menlo",monospace; }
+
+  /* Deps arrow */
+  .task-deps { font-size: 0.72rem; color: var(--text-tertiary); margin-top: 0.25rem; }
+  .task-deps::before { content: '← '; opacity: 0.5; }
+
+  /* Milestone */
+  .milestone {
+    background: var(--accent-light); border: 1px solid var(--accent);
+    border-radius: 8px; padding: 0.6rem 1rem; margin: 0.75rem 0;
+    display: flex; align-items: center; gap: 0.6rem;
+    font-size: 0.85rem; font-weight: 500;
+  }
+  .milestone-icon { font-size: 1.1rem; }
+
+  code {
+    font-family: "SF Mono","Menlo","Consolas",monospace;
+    font-size: 0.82em; background: var(--code-bg);
+    padding: 0.12em 0.35em; border-radius: 3px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+  @media (max-width: 600px) {
+    .page { padding: 1.5rem 1rem 4rem; }
+    .phase-header { flex-wrap: wrap; }
+    .phase-meta { width: 100%; margin-top: 0.25rem; }
+  }
+</style>
+
+<div class="page">
+  <header class="page-header">
+    <h1>実装計画</h1>
+    <p class="subtitle">kaido-mobile-next — Flutter モノレポ モバイルアプリケーション</p>
+  </header>
+
+  <div class="progress-bar">
+    <div class="bar-track"><div class="bar-fill" id="progress-fill" style="width:0%"></div></div>
+    <div class="bar-label">
+      <span id="progress-text">0 / 0 タスク完了</span>
+      <span id="progress-pct">0%</span>
+    </div>
+  </div>
+
+  <div id="phases"></div>
+</div>
+
+<script>
+const PHASES = [
+  {
+    id: 'p1', num: '1', title: 'モノレポ基盤構築',
+    color: '--blue', estimate: '1日',
+    desc: 'melos ワークスペース・共通設定・Git リポジトリの初期化。全パッケージの土台を作る。',
+    tasks: [
+      { id: 't1-1', name: 'Git リポジトリ初期化', detail: 'git init + .gitignore（.credentials/, env/, build/ 等）', tags: ['0.5h'] },
+      { id: 't1-2', name: 'melos.yaml 作成', detail: 'ワークスペース定義・scripts（analyze, test, build:gen, clean）', tags: ['0.5h'] },
+      { id: 't1-3', name: 'ルート pubspec.yaml', detail: 'workspace 定義。直接の依存は持たない', tags: ['0.5h'] },
+      { id: 't1-4', name: 'analysis_options.yaml', detail: 'very_good_analysis ベースの共通 Lint ルール', tags: ['0.5h'] },
+      { id: 't1-5', name: 'env/ ディレクトリ', detail: 'development.json / production.json のテンプレート作成', tags: ['0.5h'] },
+      { id: 't1-6', name: 'melos bootstrap 動作確認', detail: 'melos bs で全パッケージの依存解決が通ることを確認', tags: ['0.5h'], deps: ['t1-2', 't1-3'] },
+    ],
+    milestone: '空のモノレポが melos bootstrap できる状態'
+  },
+  {
+    id: 'p2', num: '2', title: 'kaido_api パッケージ',
+    color: '--teal', estimate: '1〜2日',
+    desc: 'kaido-web-next の REST API を呼び出す HTTP クライアント。dio + retrofit で型安全に定義する。',
+    tasks: [
+      { id: 't2-1', name: 'パッケージ雛形作成', detail: 'packages/kaido_api/ に pubspec.yaml + lib/ 作成', tags: ['kaido_api', '0.5h'], deps: ['t1-6'] },
+      { id: 't2-2', name: 'Dio クライアント設定', detail: 'ベース URL・タイムアウト・インターセプター（Bearer Token 認証・ログ・リトライ）', tags: ['kaido_api', '2h'] },
+      { id: 't2-3', name: 'retrofit エンドポイント定義', detail: '/api/v1/maps/:context/spots, /routes, /detours の 3 エンドポイント', tags: ['kaido_api', '2h'] },
+      { id: 't2-4', name: 'Result 型', detail: 'ApiResult<T> sealed class（ApiSuccess / ApiFailure）', tags: ['kaido_api', '1h'] },
+      { id: 't2-5', name: 'コード生成・動作確認', detail: 'build_runner で retrofit コード生成。API モックでテスト', tags: ['kaido_api', '1h'], deps: ['t2-2', 't2-3', 't2-4'] },
+    ],
+    milestone: 'kaido-web-next API に対して型安全にリクエストできる'
+  },
+  {
+    id: 'p3', num: '3', title: 'kaido_data パッケージ',
+    color: '--green', estimate: '2〜3日',
+    desc: 'freezed モデル・リポジトリ・Riverpod プロバイダ。オフラインファースト戦略の実装。',
+    tasks: [
+      { id: 't3-1', name: 'パッケージ雛形作成', detail: 'packages/kaido_data/ に pubspec.yaml + lib/ 作成', tags: ['kaido_data', '0.5h'], deps: ['t1-6'] },
+      { id: 't3-2', name: 'freezed モデル定義', detail: 'Point, RoutePoint, Detour, KaidoConfig を @freezed で定義', tags: ['kaido_data', '2h'] },
+      { id: 't3-3', name: 'ローカルデータソース', detail: 'バンドル JSON 読込 + ファイルキャッシュ（path_provider）', tags: ['kaido_data', '3h'] },
+      { id: 't3-4', name: 'リポジトリ実装', detail: 'PointRepository / RouteRepository / DetourRepository — API → キャッシュ → バンドルのフォールバック', tags: ['kaido_data', '3h'], deps: ['t2-5', 't3-3'] },
+      { id: 't3-5', name: 'Riverpod プロバイダ', detail: 'kaidoConfigProvider, pointsProvider, routesProvider, detoursProvider, mapControllerProvider', tags: ['kaido_data', '3h'], deps: ['t3-4'] },
+      { id: 't3-6', name: 'コード生成・ユニットテスト', detail: 'build_runner + モデルシリアライズ / リポジトリフォールバックのテスト', tags: ['kaido_data', '2h'], deps: ['t3-5'] },
+    ],
+    milestone: 'データの取得・キャッシュ・プロバイダが動作する'
+  },
+  {
+    id: 'p4', num: '4', title: 'kaido_ui パッケージ',
+    color: '--purple', estimate: '3〜5日',
+    desc: '全アプリ共有の画面・ウィジェット・テーマ・ルーター。旧 kaido_core からの移植 + モダナイズ。',
+    tasks: [
+      { id: 't4-1', name: 'パッケージ雛形作成', detail: 'packages/kaido_ui/ に pubspec.yaml + lib/ 作成', tags: ['kaido_ui', '0.5h'], deps: ['t1-6'] },
+      { id: 't4-2', name: 'KaidoTheme 定義', detail: 'ThemeData の共通設定。primarySwatch, AppBarTheme, fontFamily', tags: ['kaido_ui', '2h'] },
+      { id: 't4-3', name: 'go_router 設定', detail: '全ルート定義（/, /info/:id, /settings, /contact 等）', tags: ['kaido_ui', '2h'] },
+      { id: 't4-4', name: 'KaidoApp ウィジェット', detail: 'MaterialApp.router ラッパー。KaidoConfig からテーマ・タイトルを注入', tags: ['kaido_ui', '1h'], deps: ['t4-2', 't4-3'] },
+      { id: 't4-5', name: 'MapPage — 地図画面', detail: 'GoogleMap + マーカー表示 + Polyline + ビューポートフィルタリング + GPS追従 + コンパスモード + カメラ位置記憶', tags: ['kaido_ui', '8h'], deps: ['t3-5'] },
+      { id: 't4-6', name: 'BottomBar ウィジェット', detail: 'GPS / ポイント表示切替 / 設定 のボトムナビゲーション', tags: ['kaido_ui', '2h'] },
+      { id: 't4-7', name: 'InfoPage — ポイント詳細', detail: 'タイトル・画像・説明文・問い合わせ遷移', tags: ['kaido_ui', '3h'], deps: ['t3-5'] },
+      { id: 't4-8', name: 'ImagePage — 画像拡大', detail: 'InteractiveViewer による拡大縮小表示', tags: ['kaido_ui', '1h'] },
+      { id: 't4-9', name: 'SettingsPage — 設定', detail: 'はじめに / ヘルプ / 五街道紹介 / データ更新 / 著作権 へのハブ', tags: ['kaido_ui', '2h'] },
+      { id: 't4-10', name: 'ContactPage + ContactMapPage', detail: '問い合わせフォーム + 地図上位置選択 + メール送信', tags: ['kaido_ui', '3h'] },
+      { id: 't4-11', name: 'HtmlPage — WebView', detail: '静的 HTML コンテンツ表示（webview_flutter）', tags: ['kaido_ui', '1h'] },
+      { id: 't4-12', name: 'SplashPage', detail: 'スプラッシュ画面（3秒表示後メインに遷移）', tags: ['kaido_ui', '1h'] },
+      { id: 't4-13', name: 'CopyrightPage', detail: '著作権・ライセンス情報表示', tags: ['kaido_ui', '0.5h'] },
+    ],
+    milestone: '全画面の共通ウィジェットが揃い、単体で描画できる'
+  },
+  {
+    id: 'p5', num: '5', title: '東海道アプリ（パイロット）',
+    color: '--orange', estimate: '2〜3日',
+    desc: '最初の1アプリを完成させ、実機で既存アプリと同等の動作を確認する。',
+    tasks: [
+      { id: 't5-1', name: 'Flutter プロジェクト作成', detail: 'flutter create apps/tokaido — android/, ios/ 含む', tags: ['tokaido', '1h'], deps: ['t4-4'] },
+      { id: 't5-2', name: 'main.dart 実装', detail: 'KaidoConfig 注入（appName, apiContext, themeColor）+ ProviderScope + KaidoApp', tags: ['tokaido', '1h'] },
+      { id: 't5-3', name: 'アセット移行', detail: '旧 kaido_tokaido_app の assets/json, images, pin, html, copyright をコピー', tags: ['tokaido', '1h'] },
+      { id: 't5-4', name: 'iOS 設定', detail: 'Bundle ID・Display Name・Google Maps API Key・Info.plist（位置情報権限）・署名設定', tags: ['tokaido', '2h'] },
+      { id: 't5-5', name: 'Android 設定', detail: 'applicationId・appName・Google Maps API Key・AndroidManifest（位置情報権限）・署名設定', tags: ['tokaido', '2h'] },
+      { id: 't5-6', name: 'ExportOptions.plist', detail: 'IPA 書き出し用設定ファイル（配布方式・プロビジョニング）', tags: ['tokaido', '1h'] },
+      { id: 't5-7', name: '実機テスト — iOS', detail: '全画面遷移・地図マーカー表示・GPS追従・Polyline描画・データ更新を既存アプリと比較', tags: ['tokaido', '4h'], deps: ['t5-4'] },
+      { id: 't5-8', name: '実機テスト — Android', detail: '同上の動作確認を Android 実機で実施', tags: ['tokaido', '4h'], deps: ['t5-5'] },
+      { id: 't5-9', name: 'パフォーマンス検証', detail: '482マーカーのビューポートフィルタリング動作確認。FPS・メモリ使用量チェック', tags: ['tokaido', '2h'], deps: ['t5-7'] },
+    ],
+    milestone: '東海道アプリが既存アプリと同等に動作する'
+  },
+  {
+    id: 'p6', num: '6', title: '全アプリ展開',
+    color: '--red', estimate: '2日',
+    desc: '東海道をテンプレートに残り4アプリを作成。アセットとアプリ固有設定を配置する。',
+    tasks: [
+      { id: 't6-1', name: 'nakasendo アプリ作成', detail: 'プロジェクト作成 + main.dart + アセット移行 + iOS/Android設定', tags: ['nakasendo', '2h'], deps: ['t5-9'] },
+      { id: 't6-2', name: 'koshu アプリ作成', detail: '同上', tags: ['koshu', '2h'], deps: ['t5-9'] },
+      { id: 't6-3', name: 'nikko アプリ作成', detail: '同上', tags: ['nikko', '2h'], deps: ['t5-9'] },
+      { id: 't6-4', name: 'oshu アプリ作成', detail: '同上', tags: ['oshu', '2h'], deps: ['t5-9'] },
+      { id: 't6-5', name: '全アプリ実機確認', detail: '5アプリ全ての基本動作を実機で確認', tags: ['3h'], deps: ['t6-1', 't6-2', 't6-3', 't6-4'] },
+      { id: 't6-6', name: 'melos 一括操作確認', detail: 'melos analyze / melos test が全パッケージで通ることを確認', tags: ['1h'], deps: ['t6-5'] },
+    ],
+    milestone: '5アプリ全てがビルド・動作する'
+  },
+  {
+    id: 'p7', num: '7', title: 'リリース準備・ストア移行',
+    color: '--accent', estimate: '1〜2日',
+    desc: 'リリーススクリプトの認証セットアップ、テスト配信、既存ストアリスティングの更新。',
+    tasks: [
+      { id: 't7-1', name: '認証情報セットアップ', detail: './release/release.sh setup — Apple API Key + Google Play Service Account', tags: ['1h'] },
+      { id: 't7-2', name: 'TestFlight テスト配信', detail: '東海道 iOS を TestFlight に配信して動作確認', tags: ['tokaido', '1h'], deps: ['t7-1', 't6-6'] },
+      { id: 't7-3', name: '内部テストトラック配信', detail: '東海道 Android を内部テストに配信して動作確認', tags: ['tokaido', '1h'], deps: ['t7-1', 't6-6'] },
+      { id: 't7-4', name: '全アプリ TestFlight 配信', detail: '残り4アプリを TestFlight に配信', tags: ['2h'], deps: ['t7-2'] },
+      { id: 't7-5', name: '全アプリ内部テスト配信', detail: '残り4アプリを内部テストに配信', tags: ['2h'], deps: ['t7-3'] },
+      { id: 't7-6', name: '本番リリース', detail: 'App Store / Google Play の既存リスティングをアップデートとして公開', tags: ['2h'], deps: ['t7-4', 't7-5'] },
+    ],
+    milestone: '全5アプリが新アーキテクチャでストア公開完了'
+  },
+];
+
+// ── 永続化 (localStorage) ─────────────────────────────
+const STORAGE_KEY = 'kaido-impl-plan-done';
+function loadDone() {
+  try { return new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]')); }
+  catch { return new Set(); }
+}
+function saveDone(set) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify([...set]));
+}
+let doneSet = loadDone();
+
+// ── 描画 ──────────────────────────────────────────────
+const phaseColors = {
+  '--blue':   { bg: 'var(--blue-bg)',   fg: 'var(--blue)' },
+  '--teal':   { bg: 'var(--teal-bg)',   fg: 'var(--teal)' },
+  '--green':  { bg: 'var(--green-bg)',  fg: 'var(--green)' },
+  '--purple': { bg: 'var(--purple-bg)', fg: 'var(--purple)' },
+  '--orange': { bg: 'var(--orange-bg)', fg: 'var(--orange)' },
+  '--red':    { bg: 'var(--red-bg)',    fg: 'var(--red)' },
+  '--accent': { bg: 'var(--accent-light)', fg: 'var(--accent)' },
+};
+
+function renderAll() {
+  const container = document.getElementById('phases');
+  container.innerHTML = '';
+  let totalTasks = 0, totalDone = 0;
+
+  for (const phase of PHASES) {
+    const c = phaseColors[phase.color] || phaseColors['--blue'];
+    const phaseDone = phase.tasks.filter(t => doneSet.has(t.id)).length;
+    totalTasks += phase.tasks.length;
+    totalDone += phaseDone;
+
+    const div = document.createElement('div');
+    div.className = 'phase';
+    div.innerHTML = `
+      <div class="phase-header" data-phase="${phase.id}">
+        <span class="phase-badge" style="background:${c.bg};color:${c.fg}">${phase.num}</span>
+        <span class="phase-title">${phase.title}</span>
+        <span class="phase-meta">${phaseDone}/${phase.tasks.length} · ${phase.estimate}</span>
+        <span class="phase-chevron">▼</span>
+      </div>
+      <div class="phase-body">
+        <p class="phase-desc">${phase.desc}</p>
+        ${phase.tasks.map(t => renderTask(t, c)).join('')}
+        ${phase.milestone ? `<div class="milestone"><span class="milestone-icon">◆</span>${phase.milestone}</div>` : ''}
+      </div>
+    `;
+    container.appendChild(div);
+
+    div.querySelector('.phase-header').addEventListener('click', () => {
+      div.classList.toggle('collapsed');
+    });
+
+    div.querySelectorAll('.task-check').forEach(el => {
+      el.addEventListener('click', e => {
+        e.stopPropagation();
+        const id = el.dataset.id;
+        if (doneSet.has(id)) doneSet.delete(id); else doneSet.add(id);
+        saveDone(doneSet);
+        renderAll();
+      });
+    });
+  }
+
+  const pct = totalTasks ? Math.round(totalDone / totalTasks * 100) : 0;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-text').textContent = `${totalDone} / ${totalTasks} タスク完了`;
+  document.getElementById('progress-pct').textContent = pct + '%';
+}
+
+function renderTask(t, c) {
+  const done = doneSet.has(t.id);
+  const tags = (t.tags || []).map(tag => {
+    if (tag.match(/^[\d.]+h$/)) return `<span class="tag tag-effort">${tag}</span>`;
+    if (tag.match(/^(kaido_|tokaido|nakasendo|koshu|nikko|oshu)/)) return `<span class="tag tag-pkg">${tag}</span>`;
+    return `<span class="tag tag-cmd">${tag}</span>`;
+  }).join('');
+  const deps = t.deps ? `<div class="task-deps">${t.deps.map(d => findTaskName(d)).join(', ')}</div>` : '';
+  return `
+    <div class="task ${done ? 'done' : ''}">
+      <div class="task-check" data-id="${t.id}"></div>
+      <div class="task-content">
+        <div class="task-name">${t.name}</div>
+        <div class="task-detail">${t.detail}</div>
+        ${deps}
+        <div class="task-tags">${tags}</div>
+      </div>
+    </div>`;
+}
+
+function findTaskName(id) {
+  for (const p of PHASES) for (const t of p.tasks) if (t.id === id) return t.name;
+  return id;
+}
+
+renderAll();
+</script>

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Feature Model: kaido-mobile-next</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic","Noto Sans JP",system-ui,sans-serif;background:#f1f5f9;color:#1e293b;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+header{background:#fff;border-bottom:1px solid #e2e8f0;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:16px}
+header h1{font-size:15px;font-weight:700;color:#0f172a}
+header .meta{font-size:11px;color:#94a3b8;margin-top:2px}
+#summary{display:flex;gap:20px;flex-shrink:0}
+.stat{text-align:center}
+.stat .num{font-size:20px;font-weight:700;color:#0f172a;line-height:1}
+.stat .lbl{font-size:11px;color:#94a3b8;margin-top:2px}
+.toolbar{background:#fff;border-bottom:1px solid #e2e8f0;padding:8px 20px;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.toolbar button{display:inline-flex;align-items:center;padding:4px 10px;border:1px solid #cbd5e1;border-radius:6px;background:#fff;font-size:13px;color:#475569;cursor:pointer}
+.toolbar button:hover{background:#f8fafc}
+#zoom-label{font-size:11px;color:#64748b;width:40px;text-align:center;font-variant-numeric:tabular-nums}
+.toolbar .hint{margin-left:12px;font-size:11px;color:#94a3b8}
+#legend{display:flex;flex-wrap:wrap;gap:8px;padding:8px 20px;background:#f8fafc;border-bottom:1px solid #e2e8f0;flex-shrink:0}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:11px;color:#475569;background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:3px 8px}
+.legend-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.legend-line{width:20px;height:2px;flex-shrink:0}
+#canvas-container{flex:1;overflow:hidden;position:relative}
+#canvas{width:100%;height:100%;cursor:grab}
+#tooltip{position:absolute;display:none;background:#1e293b;color:#fff;font-size:12px;border-radius:10px;padding:8px 12px;pointer-events:none;max-width:240px;z-index:10;line-height:1.5;box-shadow:0 4px 12px rgba(0,0,0,.15)}
+#tooltip strong{display:block;margin-bottom:4px}
+#tooltip .dim{opacity:.7}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1 id="title"></h1>
+    <div class="meta" id="meta"></div>
+  </div>
+  <div id="summary"></div>
+</header>
+
+<div class="toolbar">
+  <button id="btn-zoom-out">&minus;</button>
+  <span id="zoom-label">100%</span>
+  <button id="btn-zoom-in">+</button>
+  <button id="btn-reset">リセット</button>
+  <span class="hint">背景ドラッグでパン　Shift+ホイールで拡大縮小</span>
+</div>
+
+<div id="legend"></div>
+
+<div id="canvas-container">
+  <svg id="canvas">
+    <defs>
+      <pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse">
+        <circle cx="12" cy="12" r="1" fill="#cbd5e1" opacity="0.5"/>
+      </pattern>
+      <marker id="arr-child" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10Z" fill="#94a3b8"/>
+      </marker>
+      <marker id="arr-requires" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10Z" fill="#2563eb"/>
+      </marker>
+      <marker id="arr-excludes" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10Z" fill="#dc2626"/>
+      </marker>
+    </defs>
+    <rect fill="url(#grid)" x="-9999" y="-9999" width="19998" height="19998"/>
+    <g id="world"></g>
+  </svg>
+  <div id="tooltip"></div>
+</div>
+
+<script>
+const DATA = {"project":"kaido-mobile-next","updatedAt":"2026-07-10","domains":[{"id":"map","name":"地図表示","features":[{"id":"map.markers","name":"マーカー表示","type":"mandatory","status":"planned","description":"ポイントデータをGoogle Maps上にマーカーとして表示","children":[{"id":"map.markers.category-icon","name":"カテゴリ別アイコン","type":"mandatory","status":"planned","description":"カテゴリごとに異なるピンアイコンを表示","children":[]},{"id":"map.markers.info-window","name":"情報ウィンドウ","type":"mandatory","status":"planned","description":"マーカータップでタイトル・カテゴリをポップアップ表示","children":[]},{"id":"map.markers.viewport-filter","name":"ビューポートフィルタリング","type":"mandatory","status":"planned","description":"表示範囲内のマーカーのみ描画","children":[]},{"id":"map.markers.visibility-toggle","name":"表示切替","type":"mandatory","status":"planned","description":"マーカーの一括表示/非表示を切り替え","children":[]}]},{"id":"map.polylines","name":"ルート線表示","type":"mandatory","status":"planned","description":"街道ルートをPolylineで地図上に描画","children":[{"id":"map.polylines.main-route","name":"本道ルート","type":"mandatory","status":"planned","description":"街道の本道をPolylineで表示","children":[]},{"id":"map.polylines.detour","name":"寄り道ルート","type":"mandatory","status":"planned","description":"寄り道ルートを別色Polylineで表示","children":[]}]},{"id":"map.camera","name":"カメラ制御","type":"mandatory","status":"planned","description":"地図のカメラ位置・ズームレベルの管理","children":[{"id":"map.camera.position-memory","name":"位置記憶","type":"mandatory","status":"planned","description":"終了時のカメラ位置を保存し復元","children":[]},{"id":"map.camera.initial-position","name":"初期位置","type":"mandatory","status":"planned","description":"日本橋付近をデフォルト初期位置に設定","children":[]}]}]},{"id":"navigation","name":"ナビゲーション","features":[{"id":"navigation.gps","name":"GPS追従","type":"optional","status":"planned","description":"端末のGPSに追従してカメラを移動","children":[{"id":"navigation.gps.location-tracking","name":"位置追従","type":"mandatory","status":"planned","description":"現在位置にカメラを自動移動","children":[]},{"id":"navigation.gps.compass-mode","name":"コンパスモード","type":"optional","status":"planned","description":"端末の向きに合わせてカメラを回転","children":[]}]},{"id":"navigation.permission","name":"位置情報権限","type":"mandatory","status":"planned","description":"位置情報の権限リクエストと状態管理","children":[]}]},{"id":"content","name":"コンテンツ","features":[{"id":"content.points","name":"ポイントデータ","type":"mandatory","status":"planned","description":"宿場・名所等の地点情報","children":[{"id":"content.points.categories","name":"カテゴリ分類","type":"or","status":"planned","description":"ポイントのカテゴリ種別","variationPoint":"ポイントカテゴリ","children":[{"id":"content.points.categories.shukuba","name":"宿場","type":"or","status":"planned","description":"街道の宿場町","children":[]},{"id":"content.points.categories.meisho","name":"名所","type":"or","status":"planned","description":"歴史的名所・観光スポット","children":[]},{"id":"content.points.categories.ichirizuka","name":"一里塚","type":"or","status":"planned","description":"一里ごとの道標","children":[]},{"id":"content.points.categories.ukiyoe","name":"浮世絵","type":"or","status":"planned","description":"浮世絵に描かれた場所","children":[]},{"id":"content.points.categories.mitsuke","name":"見付","type":"or","status":"planned","description":"宿場の入口の見張り番所","children":[]}]},{"id":"content.points.detail","name":"ポイント詳細","type":"mandatory","status":"planned","description":"ポイントの詳細情報表示画面","children":[{"id":"content.points.detail.description","name":"説明文","type":"mandatory","status":"planned","description":"ポイントの歴史的解説テキスト","children":[]},{"id":"content.points.detail.image","name":"画像表示","type":"optional","status":"planned","description":"浮世絵・名所画像の表示（ない街道もある）","children":[]},{"id":"content.points.detail.image-zoom","name":"画像拡大","type":"optional","status":"planned","description":"画像タップで全画面拡大表示","children":[]}]}]},{"id":"content.routes","name":"ルートデータ","type":"mandatory","status":"planned","description":"街道ルートの座標データ","children":[{"id":"content.routes.main","name":"本道","type":"mandatory","status":"planned","description":"街道の本道ルート座標群","children":[]},{"id":"content.routes.detour","name":"寄り道","type":"mandatory","status":"planned","description":"寄り道ルート座標群","children":[]}]},{"id":"content.static-pages","name":"静的ページ","type":"mandatory","status":"planned","description":"WebViewで表示する静的HTMLコンテンツ","children":[{"id":"content.static-pages.introduction","name":"はじめに","type":"mandatory","status":"planned","description":"アプリの使い方説明","children":[]},{"id":"content.static-pages.help","name":"ヘルプ","type":"mandatory","status":"planned","description":"操作ヘルプ","children":[]},{"id":"content.static-pages.five-kaido","name":"五街道紹介","type":"mandatory","status":"planned","description":"五街道の歴史解説","children":[]}]}]},{"id":"data-sync","name":"データ同期","features":[{"id":"data-sync.api","name":"API通信","type":"mandatory","status":"planned","description":"kaido-web-next APIからデータ取得","children":[{"id":"data-sync.api.fetch","name":"データ取得","type":"mandatory","status":"planned","description":"ポイント・ルート・寄り道データのfetch","children":[]},{"id":"data-sync.api.auth","name":"API認証","type":"mandatory","status":"planned","description":"Bearer Token による認証","children":[]}]},{"id":"data-sync.local-cache","name":"ローカルキャッシュ","type":"mandatory","status":"planned","description":"取得データのローカル保存","children":[{"id":"data-sync.local-cache.file-cache","name":"ファイルキャッシュ","type":"mandatory","status":"planned","description":"APIレスポンスをローカルファイルに保存","children":[]},{"id":"data-sync.local-cache.bundle-json","name":"バンドルJSON","type":"mandatory","status":"planned","description":"初回起動・オフライン用のバンドル済みJSON","children":[]}]},{"id":"data-sync.update","name":"データ更新","type":"mandatory","status":"planned","description":"データの更新メカニズム","children":[{"id":"data-sync.update.manual","name":"手動更新","type":"mandatory","status":"planned","description":"設定画面からの手動データ更新","children":[]},{"id":"data-sync.update.background","name":"バックグラウンド更新","type":"optional","status":"planned","description":"起動時にバックグラウンドで自動同期","children":[]}]}]},{"id":"user-support","name":"ユーザーサポート","features":[{"id":"user-support.contact","name":"問い合わせ","type":"mandatory","status":"planned","description":"メールによる問い合わせ機能","children":[{"id":"user-support.contact.form","name":"問い合わせフォーム","type":"mandatory","status":"planned","description":"種別選択・メッセージ入力フォーム","children":[]},{"id":"user-support.contact.location-select","name":"位置情報選択","type":"optional","status":"planned","description":"地図上で問い合わせ対象の位置を指定","children":[]},{"id":"user-support.contact.email-send","name":"メール送信","type":"mandatory","status":"planned","description":"端末のメールアプリ経由で送信","children":[]}]},{"id":"user-support.settings","name":"設定画面","type":"mandatory","status":"planned","description":"各種設定・情報へのハブ画面","children":[]},{"id":"user-support.copyright","name":"著作権情報","type":"mandatory","status":"planned","description":"著作権・ライセンス表示","children":[]}]},{"id":"app-config","name":"アプリ構成","features":[{"id":"app-config.kaido-select","name":"街道選択","type":"mandatory","status":"planned","description":"アプリごとに1つの街道を選択","variationPoint":"街道選択","children":[{"id":"app-config.kaido-select.tokaido","name":"東海道","type":"alternative","status":"planned","description":"東海道五十三次（482ポイント・画像55枚）","children":[]},{"id":"app-config.kaido-select.nakasendo","name":"中山道","type":"alternative","status":"planned","description":"中山道六十九次（582ポイント・画像70枚）","children":[]},{"id":"app-config.kaido-select.koshu","name":"甲州道中","type":"alternative","status":"planned","description":"甲州道中（236ポイント）","children":[]},{"id":"app-config.kaido-select.nikko","name":"日光道中","type":"alternative","status":"planned","description":"日光道中（159ポイント）","children":[]},{"id":"app-config.kaido-select.oshu","name":"奥州道中","type":"alternative","status":"planned","description":"奥州道中（203ポイント）","children":[]}]},{"id":"app-config.splash","name":"スプラッシュ画面","type":"mandatory","status":"planned","description":"起動時の3秒間スプラッシュ表示","children":[]},{"id":"app-config.theme","name":"テーマ","type":"mandatory","status":"planned","description":"アプリのカラーテーマ・フォント設定","children":[]}]}],"constraints":[{"type":"requires","from":"map.markers","fromName":"マーカー表示","to":"content.points","toName":"ポイントデータ"},{"type":"requires","from":"map.polylines.main-route","fromName":"本道ルート表示","to":"content.routes.main","toName":"本道データ"},{"type":"requires","from":"map.polylines.detour","fromName":"寄り道ルート表示","to":"content.routes.detour","toName":"寄り道データ"},{"type":"requires","from":"user-support.contact.location-select","fromName":"位置情報選択","to":"map.camera","toName":"カメラ制御"},{"type":"requires","from":"navigation.gps","fromName":"GPS追従","to":"navigation.permission","toName":"位置情報権限"},{"type":"requires","from":"data-sync.api","fromName":"API通信","to":"app-config.kaido-select","toName":"街道選択"},{"type":"requires","from":"content.points.detail.image-zoom","fromName":"画像拡大","to":"content.points.detail.image","toName":"画像表示"}]};
+
+// ── Constants ──
+const FW = 200, FH = 72;
+const DW = 180, DH = 44;
+const RW = 220, RH = 48;
+const HGAP = 32, VGAP = 56;
+const MIN_Z = 0.15, MAX_Z = 2.5, ZSTEP = 0.15, PAD = 60;
+
+const TYPE_COLOR = { mandatory:'#1d4ed8', optional:'#6b7280', alternative:'#c2410c', or:'#065f46' };
+const TYPE_CHAR  = { mandatory:'M', optional:'O', alternative:'A', or:'R' };
+const TYPE_LABEL = { mandatory:'Mandatory', optional:'Optional', alternative:'Alternative', or:'Or' };
+const STATUS_ICON  = { planned:'⬜', 'in-progress':'🔄', done:'✅' };
+const STATUS_LABEL = { planned:'未着手', 'in-progress':'実装中', done:'完了' };
+
+// ── SVG helpers ──
+const NS = 'http://www.w3.org/2000/svg';
+function svgEl(tag, attrs) {
+  const el = document.createElementNS(NS, tag);
+  if (attrs) for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+  return el;
+}
+function svgText(attrs, text) {
+  const el = svgEl('text', attrs);
+  el.textContent = text;
+  return el;
+}
+function clip(s, n) { return s && s.length > n ? s.slice(0, n) + '…' : (s || ''); }
+
+// ── Build unified tree ──
+function attachKind(f) {
+  return { ...f, _kind:'feature', _w:FW, _h:FH, children:(f.children||[]).map(attachKind) };
+}
+function buildTree() {
+  return {
+    _kind:'root', id:'__root__', name:DATA.project, _w:RW, _h:RH,
+    children: DATA.domains.map(d => ({
+      _kind:'domain', id:'__d_'+d.id, name:d.name, _w:DW, _h:DH,
+      children: d.features.map(attachKind)
+    }))
+  };
+}
+
+// ── Layout (Reingold-Tilford style) ──
+function subtreeW(n) {
+  if (!n.children || !n.children.length) return n._w;
+  return Math.max(n._w, n.children.reduce((s,c,i) => s + subtreeW(c) + (i?HGAP:0), 0));
+}
+function layout(n, x, y) {
+  const sw = subtreeW(n);
+  n._x = x + (sw - n._w) / 2;
+  n._y = y;
+  if (n.children && n.children.length) {
+    let cx = x;
+    for (const c of n.children) { layout(c, cx, y + n._h + VGAP); cx += subtreeW(c) + HGAP; }
+  }
+}
+function allNodes(n) {
+  const r = [n];
+  if (n.children) n.children.forEach(c => r.push(...allNodes(c)));
+  return r;
+}
+
+// ── Render nodes ──
+function renderRoot(n) {
+  const g = svgEl('g', { transform:`translate(${n._x},${n._y})` });
+  g.appendChild(svgEl('rect', { width:RW, height:RH, rx:14, fill:'rgba(0,0,0,0.06)', transform:'translate(2,3)' }));
+  g.appendChild(svgEl('rect', { width:RW, height:RH, rx:14, fill:'#0f172a' }));
+  g.appendChild(svgText({ x:RW/2, y:RH/2+5, 'text-anchor':'middle', 'font-size':14, 'font-weight':700, fill:'#fff' }, clip(n.name, 22)));
+  return g;
+}
+function renderDomain(n) {
+  const g = svgEl('g', { transform:`translate(${n._x},${n._y})` });
+  g.appendChild(svgEl('rect', { width:DW, height:DH, rx:10, fill:'rgba(0,0,0,0.05)', transform:'translate(2,3)' }));
+  g.appendChild(svgEl('rect', { width:DW, height:DH, rx:10, fill:'#334155' }));
+  g.appendChild(svgText({ x:DW/2, y:DH/2+5, 'text-anchor':'middle', 'font-size':13, 'font-weight':600, fill:'#fff' }, clip(n.name, 18)));
+  return g;
+}
+function renderFeature(n) {
+  const c = TYPE_COLOR[n.type] || '#6b7280';
+  const g = svgEl('g', { transform:`translate(${n._x},${n._y})`, style:'cursor:pointer' });
+  // shadow
+  g.appendChild(svgEl('rect', { width:FW, height:FH, rx:10, fill:'rgba(0,0,0,0.06)', transform:'translate(2,3)' }));
+  // bg
+  g.appendChild(svgEl('rect', { width:FW, height:FH, rx:10, fill:'#fff', stroke:c, 'stroke-width':1.5 }));
+  // left bar via clip
+  const cid = 'cl-' + n.id.replace(/[^a-z0-9]/gi, '-');
+  const cp = svgEl('clipPath', { id:cid });
+  cp.appendChild(svgEl('rect', { width:FW, height:FH, rx:10 }));
+  g.appendChild(cp);
+  g.appendChild(svgEl('rect', { x:0, y:0, width:7, height:FH, fill:c, 'clip-path':`url(#${cid})` }));
+  // type circle
+  g.appendChild(svgEl('circle', { cx:28, cy:26, r:14, fill:c }));
+  g.appendChild(svgText({ x:28, y:31, 'text-anchor':'middle', 'font-size':11, 'font-weight':700, fill:'#fff' }, TYPE_CHAR[n.type]||'?'));
+  // name + status
+  g.appendChild(svgText({ x:50, y:23, 'font-size':12, 'font-weight':600, fill:'#1e293b' }, clip(n.name, 14)));
+  g.appendChild(svgText({ x:FW-8, y:23, 'text-anchor':'end', 'font-size':13 }, STATUS_ICON[n.status]||'⬜'));
+  // variation point
+  let nextY = 38;
+  if (n.variationPoint) {
+    g.appendChild(svgText({ x:50, y:nextY, 'font-size':9, fill:'#94a3b8' }, '◇ ' + clip(n.variationPoint, 14)));
+    nextY += 14;
+  }
+  // description
+  if (n.description) {
+    g.appendChild(svgText({ x:50, y:nextY, 'font-size':9, fill:'#94a3b8' }, clip(n.description, 20)));
+  }
+  // tooltip events
+  g.addEventListener('mouseenter', e => showTip(e, n));
+  g.addEventListener('mouseleave', hideTip);
+  return g;
+}
+
+// ── Render edges ──
+function renderEdges(root) {
+  const g = svgEl('g', { style:'pointer-events:none' });
+  function walk(node) {
+    for (const ch of (node.children||[])) {
+      const sx = node._x + node._w/2, sy = node._y + node._h;
+      const ex = ch._x + ch._w/2, ey = ch._y;
+      const my = (sy + ey) / 2;
+      const d = `M${sx} ${sy} C${sx} ${my},${ex} ${my},${ex} ${ey}`;
+      const color = ch._kind==='feature' ? (TYPE_COLOR[ch.type]||'#94a3b8') : '#94a3b8';
+      const p = svgEl('path', { d, fill:'none', stroke:color, 'stroke-width':ch._kind==='feature'?1.5:2, 'marker-end':'url(#arr-child)' });
+      if (ch._kind==='feature' && ch.type==='optional') p.setAttribute('stroke-dasharray', '5 3');
+      g.appendChild(p);
+      walk(ch);
+    }
+  }
+  walk(root);
+  return g;
+}
+
+// ── Cross-tree constraints ──
+function renderConstraints(fm) {
+  const g = svgEl('g', { style:'pointer-events:none' });
+  for (const c of (DATA.constraints||[])) {
+    const s = fm.get(c.from), t = fm.get(c.to);
+    if (!s || !t) continue;
+    const isReq = c.type === 'requires';
+    const col = isReq ? '#2563eb' : '#dc2626';
+    const sx = s._x + s._w/2, sy = s._y + s._h/2;
+    const ex = t._x + t._w/2, ey = t._y + t._h/2;
+    const mx = (sx+ex)/2, my = Math.min(sy, ey) - 40;
+    g.appendChild(svgEl('path', {
+      d:`M${sx} ${sy} Q${mx} ${my},${ex} ${ey}`,
+      fill:'none', stroke:col, 'stroke-width':1.5, 'stroke-dasharray':'6 3',
+      'marker-end':`url(#arr-${isReq?'requires':'excludes'})`
+    }));
+    const lbl = c.type;
+    const lw = lbl.length * 6.5 + 14;
+    g.appendChild(svgEl('rect', { x:mx-lw/2, y:my-10, width:lw, height:15, rx:7, fill:col, opacity:0.9 }));
+    g.appendChild(svgText({ x:mx, y:my+1, 'text-anchor':'middle', 'font-size':9, 'font-weight':600, fill:'#fff' }, lbl));
+  }
+  return g;
+}
+
+// ── Main render ──
+function render() {
+  const world = document.getElementById('world');
+  world.innerHTML = '';
+
+  // stats
+  let totalF=0, totalDone=0, totalIP=0;
+  function cnt(f) { totalF++; if(f.status==='done') totalDone++; if(f.status==='in-progress') totalIP++; (f.children||[]).forEach(cnt); }
+  DATA.domains.forEach(d => d.features.forEach(cnt));
+
+  document.getElementById('title').textContent = 'Feature Model: ' + DATA.project;
+  document.getElementById('meta').textContent = '最終更新: ' + DATA.updatedAt;
+  document.getElementById('summary').innerHTML = [
+    [DATA.domains.length,'ドメイン'],[totalF,'フィーチャー'],
+    [totalDone,'✅ 完了'],[totalIP,'🔄 実装中'],[totalF-totalDone-totalIP,'⬜ 未着手']
+  ].map(([n,l])=>'<div class="stat"><div class="num">'+n+'</div><div class="lbl">'+l+'</div></div>').join('');
+
+  // tree
+  const tree = buildTree();
+  layout(tree, PAD, PAD);
+
+  // feature map
+  const fm = new Map();
+  allNodes(tree).filter(n => n._kind==='feature').forEach(n => fm.set(n.id, n));
+
+  // layers
+  world.appendChild(renderEdges(tree));
+  world.appendChild(renderConstraints(fm));
+  const gN = svgEl('g');
+  allNodes(tree).forEach(n => {
+    if (n._kind==='root') gN.appendChild(renderRoot(n));
+    else if (n._kind==='domain') gN.appendChild(renderDomain(n));
+    else gN.appendChild(renderFeature(n));
+  });
+  world.appendChild(gN);
+
+  // initial pan: center root at top
+  const svgRect = document.getElementById('canvas').getBoundingClientRect();
+  panX = svgRect.width/2 - (tree._x + RW/2);
+  panY = PAD;
+  applyT();
+}
+
+// ── Legend ──
+function renderLegend() {
+  const el = document.getElementById('legend');
+  let html = Object.entries(TYPE_COLOR).map(([t,c]) =>
+    '<div class="legend-item"><span class="legend-dot" style="background:'+c+'"></span><strong>'+TYPE_CHAR[t]+'</strong> '+TYPE_LABEL[t]+'</div>'
+  ).join('');
+  if (DATA.constraints && DATA.constraints.length) {
+    html += '<div class="legend-item"><span class="legend-line" style="background:repeating-linear-gradient(to right,#2563eb 0,#2563eb 4px,transparent 4px,transparent 8px)"></span>requires</div>';
+    html += '<div class="legend-item"><span class="legend-line" style="background:repeating-linear-gradient(to right,#dc2626 0,#dc2626 4px,transparent 4px,transparent 8px)"></span>excludes</div>';
+  }
+  el.innerHTML = html;
+}
+
+// ── Pan & Zoom ──
+let zoom = 1, panX = PAD, panY = PAD, panning = false, lx = 0, ly = 0;
+function applyT() {
+  document.getElementById('world').setAttribute('transform', 'translate('+panX+','+panY+') scale('+zoom+')');
+  document.getElementById('zoom-label').textContent = Math.round(zoom*100)+'%';
+}
+const cvs = document.getElementById('canvas');
+cvs.addEventListener('mousedown', e => { if(e.button!==0)return; panning=true; lx=e.clientX; ly=e.clientY; cvs.style.cursor='grabbing'; });
+window.addEventListener('mousemove', e => { if(!panning)return; panX+=e.clientX-lx; panY+=e.clientY-ly; lx=e.clientX; ly=e.clientY; applyT(); });
+window.addEventListener('mouseup', () => { panning=false; cvs.style.cursor='grab'; });
+cvs.addEventListener('wheel', e => {
+  if(!e.shiftKey)return; e.preventDefault();
+  const r = cvs.getBoundingClientRect();
+  const cx=e.clientX-r.left, cy=e.clientY-r.top;
+  const f = e.deltaY>0 ? 0.92 : 1.08;
+  const nz = Math.min(MAX_Z, Math.max(MIN_Z, zoom*f));
+  if(nz===zoom)return;
+  panX = cx-(cx-panX)/zoom*nz;
+  panY = cy-(cy-panY)/zoom*nz;
+  zoom = nz;
+  applyT();
+}, { passive:false });
+document.getElementById('btn-zoom-in').addEventListener('click', () => { zoom=Math.min(MAX_Z,zoom+ZSTEP); applyT(); });
+document.getElementById('btn-zoom-out').addEventListener('click', () => { zoom=Math.max(MIN_Z,zoom-ZSTEP); applyT(); });
+document.getElementById('btn-reset').addEventListener('click', () => { zoom=1; panX=PAD; panY=PAD; applyT(); });
+
+// ── Tooltip ──
+const tip = document.getElementById('tooltip');
+function showTip(e, node) {
+  tip.innerHTML = '<strong>'+node.name+'</strong>種別: '+(TYPE_LABEL[node.type]||node.type)+'<br>状態: '+(STATUS_LABEL[node.status]||node.status)+(node.description?'<br><span class="dim">'+node.description+'</span>':'');
+  tip.style.display = 'block';
+}
+function hideTip() { tip.style.display = 'none'; }
+document.getElementById('canvas-container').addEventListener('mousemove', e => {
+  if(tip.style.display !== 'none') {
+    const r = e.currentTarget.getBoundingClientRect();
+    tip.style.left = (e.clientX-r.left+14)+'px';
+    tip.style.top = (e.clientY-r.top-8)+'px';
+  }
+});
+
+// ── Init ──
+renderLegend();
+render();
+</script>
+</body>
+</html>

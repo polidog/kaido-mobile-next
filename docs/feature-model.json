@@ -1,0 +1,557 @@
+{
+  "project": "kaido-mobile-next",
+  "updatedAt": "2026-07-10",
+  "domains": [
+    {
+      "id": "map",
+      "name": "地図表示",
+      "features": [
+        {
+          "id": "map.markers",
+          "name": "マーカー表示",
+          "type": "mandatory",
+          "status": "planned",
+          "description": "ポイントデータをGoogle Maps上にマーカーとして表示",
+          "children": [
+            {
+              "id": "map.markers.category-icon",
+              "name": "カテゴリ別アイコン",
+              "type": "mandatory",
+              "status": "planned",
+              "description": "カテゴリごとに異なるピンアイコンを表示",
+              "children": []
+            },
+            {
+              "id": "map.markers.info-window",
+              "name": "情報ウィンドウ",
+              "type": "mandatory",
+              "status": "planned",
+              "description": "マーカータップでタイトル・カテゴリをポップアップ表示",
+              "children": []
+            },
+            {
+              "id": "map.markers.viewport-filter",
+              "name": "ビューポートフィルタリング",
+              "type": "mandatory",
+              "status": "planned",
+              "description": "表示範囲内のマーカーのみ描画",
+              "children": []
+            },
+            {
+              "id": "map.markers.visibility-toggle",
+              "name": "表示切替",
+              "type": "mandatory",
+              "status": "planned",
+              "description": "マーカーの一括表示/非表示を切り替え",
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "map.polylines",
+          "name": "ルート線表示",
+          "type": "mandatory",
+          "status": "planned",
+          "description": "街道ルートをPolylineで地図上に描画",
+          "children": [
+            {
+              "id": "map.polylines.main-route",
+              "name": "本道ルート",
+              "type": "mandatory",
+              "status": "planned",
+              "description": "街道の本道をPolylineで表示",
+              "children": []
+            },
+            {
+              "id": "map.polylines.detour",
+              "name": "寄り道ルート",
+              "type": "mandatory",
+              "status": "planned",
+              "description": "寄り道ルートを別色Polylineで表示",
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "map.camera",
+          "name": "カメラ制御",
+          "type": "mandatory",
+          "status": "planned",
+          "description": "地図のカメラ位置・ズームレベルの管理",
+          "children": [
+            {
+              "id": "map.camera.position-memory",
+              "name": "位置記憶",
+              "type": "mandatory",
+              "status": "planned",
+              "description": "終了時のカメラ位置を保存し復元",
+              "children": []
+            },
+            {
+              "id": "map.camera.initial-position",
+              "name": "初期位置",
+              "type": "mandatory",
+              "status": "planned",
+              "description": "日本橋付近をデフォルト初期位置に設定",
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "navigation",
+      "name": "ナビゲーション",
+      "features": [
+        {
+          "id": "navigation.gps",
+          "name": "GPS追従",
+          "type": "optional",
+          "status": "planned",
+          "description": "端末のGPSに追従してカメラを移動",
+          "children": [
+            {
+              "id": "navigation.gps.location-tracking",
+              "name": "位置追従",
+              "type": "mandatory",
+              "status": "planned",
+              "description": "現在位置にカメラを自動移動",
+              "children": []
+            },
+            {
+              "id": "navigation.gps.compass-mode",
+              "name": "コンパスモード",
+              "type": "optional",
+              "status": "planned",
+              "description": "端末の向きに合わせてカメラを回転",
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "navigation.permission",
+          "name": "位置情報権限",
+          "type": "mandatory",
+          "status": "planned",
+          "description": "位置情報の権限リクエストと状態管理",
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "content",
+      "name": "コンテンツ",
+      "features": [
+        {
+          "id": "content.points",
+          "name": "ポイントデータ",
+          "type": "mandatory",
+          "status": "planned",
+          "description": "宿場・名所等の地点情報",
+          "children": [
+            {
+              "id": "content.points.categories",
+              "name": "カテゴリ分類",
+              "type": "or",
+              "status": "planned",
+              "description": "ポイントのカテゴリ種別",
+              "variationPoint": "ポイントカテゴリ",
+              "children": [
+                {
+                  "id": "content.points.categories.shukuba",
+                  "name": "宿場",
+                  "type": "or",
+                  "status": "planned",
+                  "description": "街道の宿場町",
+                  "children": []
+                },
+                {
+                  "id": "content.points.categories.meisho",
+                  "name": "名所",
+                  "type": "or",
+                  "status": "planned",
+                  "description": "歴史的名所・観光スポット",
+                  "children": []
+                },
+                {
+                  "id": "content.points.categories.ichirizuka",
+                  "name": "一里塚",
+                  "type": "or",
+                  "status": "planned",
+                  "description": "一里ごとの道標",
+                  "children": []
+                },
+                {
+                  "id": "content.points.categories.ukiyoe",
+                  "name": "浮世絵",
+                  "type": "or",
+                  "status": "planned",
+                  "description": "浮世絵に描かれた場所",
+                  "children": []
+                },
+                {
+                  "id": "content.points.categories.mitsuke",
+                  "name": "見付",
+                  "type": "or",
+                  "status": "planned",
+                  "description": "宿場の入口の見張り番所",
+                  "children": []
+                }
+              ]
+            },
+            {
+              "id": "content.points.detail",
+              "name": "ポイント詳細",
+              "type": "mandatory",
+              "status": "planned",
+              "description": "ポイントの詳細情報表示画面",
+              "children": [
+                {
+                  "id": "content.points.detail.description",
+                  "name": "説明文",
+                  "type": "mandatory",
+                  "status": "planned",
+                  "description": "ポイントの歴史的解説テキスト",
+                  "children": []
+                },
+                {
+                  "id": "content.points.detail.image",
+                  "name": "画像表示",
+                  "type": "optional",
+                  "status": "planned",
+                  "description": "浮世絵・名所画像の表示（ない街道もある）",
+                  "children": []
+                },
+                {
+                  "id": "content.points.detail.image-zoom",
+                  "name": "画像拡大",
+                  "type": "optional",
+                  "status": "planned",
+                  "description": "画像タップで全画面拡大表示",
+                  "children": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "content.routes",
+          "name": "ルートデータ",
+          "type": "mandatory",
+          "status": "planned",
+          "description": "街道ルートの座標データ",
+          "children": [
+            {
+              "id": "content.routes.main",
+              "name": "本道",
+              "type": "mandatory",
+              "status": "planned",
+              "description": "街道の本道ルート座標群",
+              "children": []
+            },
+            {
+              "id": "content.routes.detour",
+              "name": "寄り道",
+              "type": "mandatory",
+              "status": "planned",
+              "description": "寄り道ルート座標群",
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "content.static-pages",
+          "name": "静的ページ",
+          "type": "mandatory",
+          "status": "planned",
+          "description": "WebViewで表示する静的HTMLコンテンツ",
+          "children": [
+            {
+              "id": "content.static-pages.introduction",
+              "name": "はじめに",
+              "type": "mandatory",
+              "status": "planned",
+              "description": "アプリの使い方説明",
+              "children": []
+            },
+            {
+              "id": "content.static-pages.help",
+              "name": "ヘルプ",
+              "type": "mandatory",
+              "status": "planned",
+              "description": "操作ヘルプ",
+              "children": []
+            },
+            {
+              "id": "content.static-pages.five-kaido",
+              "name": "五街道紹介",
+              "type": "mandatory",
+              "status": "planned",
+              "description": "五街道の歴史解説",
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "data-sync",
+      "name": "データ同期",
+      "features": [
+        {
+          "id": "data-sync.api",
+          "name": "API通信",
+          "type": "mandatory",
+          "status": "planned",
+          "description": "kaido-web-next APIからデータ取得",
+          "children": [
+            {
+              "id": "data-sync.api.fetch",
+              "name": "データ取得",
+              "type": "mandatory",
+              "status": "planned",
+              "description": "ポイント・ルート・寄り道データのfetch",
+              "children": []
+            },
+            {
+              "id": "data-sync.api.auth",
+              "name": "API認証",
+              "type": "mandatory",
+              "status": "planned",
+              "description": "Bearer Token による認証",
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "data-sync.local-cache",
+          "name": "ローカルキャッシュ",
+          "type": "mandatory",
+          "status": "planned",
+          "description": "取得データのローカル保存",
+          "children": [
+            {
+              "id": "data-sync.local-cache.file-cache",
+              "name": "ファイルキャッシュ",
+              "type": "mandatory",
+              "status": "planned",
+              "description": "APIレスポンスをローカルファイルに保存",
+              "children": []
+            },
+            {
+              "id": "data-sync.local-cache.bundle-json",
+              "name": "バンドルJSON",
+              "type": "mandatory",
+              "status": "planned",
+              "description": "初回起動・オフライン用のバンドル済みJSON",
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "data-sync.update",
+          "name": "データ更新",
+          "type": "mandatory",
+          "status": "planned",
+          "description": "データの更新メカニズム",
+          "children": [
+            {
+              "id": "data-sync.update.manual",
+              "name": "手動更新",
+              "type": "mandatory",
+              "status": "planned",
+              "description": "設定画面からの手動データ更新",
+              "children": []
+            },
+            {
+              "id": "data-sync.update.background",
+              "name": "バックグラウンド更新",
+              "type": "optional",
+              "status": "planned",
+              "description": "起動時にバックグラウンドで自動同期",
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "user-support",
+      "name": "ユーザーサポート",
+      "features": [
+        {
+          "id": "user-support.contact",
+          "name": "問い合わせ",
+          "type": "mandatory",
+          "status": "planned",
+          "description": "メールによる問い合わせ機能",
+          "children": [
+            {
+              "id": "user-support.contact.form",
+              "name": "問い合わせフォーム",
+              "type": "mandatory",
+              "status": "planned",
+              "description": "種別選択・メッセージ入力フォーム",
+              "children": []
+            },
+            {
+              "id": "user-support.contact.location-select",
+              "name": "位置情報選択",
+              "type": "optional",
+              "status": "planned",
+              "description": "地図上で問い合わせ対象の位置を指定",
+              "children": []
+            },
+            {
+              "id": "user-support.contact.email-send",
+              "name": "メール送信",
+              "type": "mandatory",
+              "status": "planned",
+              "description": "端末のメールアプリ経由で送信",
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "user-support.settings",
+          "name": "設定画面",
+          "type": "mandatory",
+          "status": "planned",
+          "description": "各種設定・情報へのハブ画面",
+          "children": []
+        },
+        {
+          "id": "user-support.copyright",
+          "name": "著作権情報",
+          "type": "mandatory",
+          "status": "planned",
+          "description": "著作権・ライセンス表示",
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "app-config",
+      "name": "アプリ構成",
+      "features": [
+        {
+          "id": "app-config.kaido-select",
+          "name": "街道選択",
+          "type": "mandatory",
+          "status": "planned",
+          "description": "アプリごとに1つの街道を選択",
+          "variationPoint": "街道選択",
+          "children": [
+            {
+              "id": "app-config.kaido-select.tokaido",
+              "name": "東海道",
+              "type": "alternative",
+              "status": "planned",
+              "description": "東海道五十三次（482ポイント・画像55枚）",
+              "children": []
+            },
+            {
+              "id": "app-config.kaido-select.nakasendo",
+              "name": "中山道",
+              "type": "alternative",
+              "status": "planned",
+              "description": "中山道六十九次（582ポイント・画像70枚）",
+              "children": []
+            },
+            {
+              "id": "app-config.kaido-select.koshu",
+              "name": "甲州道中",
+              "type": "alternative",
+              "status": "planned",
+              "description": "甲州道中（236ポイント）",
+              "children": []
+            },
+            {
+              "id": "app-config.kaido-select.nikko",
+              "name": "日光道中",
+              "type": "alternative",
+              "status": "planned",
+              "description": "日光道中（159ポイント）",
+              "children": []
+            },
+            {
+              "id": "app-config.kaido-select.oshu",
+              "name": "奥州道中",
+              "type": "alternative",
+              "status": "planned",
+              "description": "奥州道中（203ポイント）",
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "app-config.splash",
+          "name": "スプラッシュ画面",
+          "type": "mandatory",
+          "status": "planned",
+          "description": "起動時の3秒間スプラッシュ表示",
+          "children": []
+        },
+        {
+          "id": "app-config.theme",
+          "name": "テーマ",
+          "type": "mandatory",
+          "status": "planned",
+          "description": "アプリのカラーテーマ・フォント設定",
+          "children": []
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    {
+      "type": "requires",
+      "from": "map.markers",
+      "fromName": "マーカー表示",
+      "to": "content.points",
+      "toName": "ポイントデータ"
+    },
+    {
+      "type": "requires",
+      "from": "map.polylines.main-route",
+      "fromName": "本道ルート表示",
+      "to": "content.routes.main",
+      "toName": "本道データ"
+    },
+    {
+      "type": "requires",
+      "from": "map.polylines.detour",
+      "fromName": "寄り道ルート表示",
+      "to": "content.routes.detour",
+      "toName": "寄り道データ"
+    },
+    {
+      "type": "requires",
+      "from": "user-support.contact.location-select",
+      "fromName": "位置情報選択",
+      "to": "map.camera",
+      "toName": "カメラ制御"
+    },
+    {
+      "type": "requires",
+      "from": "navigation.gps",
+      "fromName": "GPS追従",
+      "to": "navigation.permission",
+      "toName": "位置情報権限"
+    },
+    {
+      "type": "requires",
+      "from": "data-sync.api",
+      "fromName": "API通信",
+      "to": "app-config.kaido-select",
+      "toName": "街道選択"
+    },
+    {
+      "type": "requires",
+      "from": "content.points.detail.image-zoom",
+      "fromName": "画像拡大",
+      "to": "content.points.detail.image",
+      "toName": "画像表示"
+    }
+  ]
+}

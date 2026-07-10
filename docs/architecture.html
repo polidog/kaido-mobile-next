@@ -1,0 +1,1168 @@
+<title>街道アプリ アーキテクチャ規約</title>
+<style>
+  :root {
+    --bg: #F7F4EE;
+    --bg-surface: #EFEBE3;
+    --text: #2C2926;
+    --text-secondary: #6B635A;
+    --accent: #B8860B;
+    --accent-muted: #D4A94220;
+    --accent-border: #D4A942;
+    --border: #D4CFC6;
+    --code-bg: #E8E3D9;
+    --tag-bg: #7B8F7218;
+    --tag-text: #5A6F52;
+    --table-stripe: #F0ECE4;
+    --red: #B85C38;
+    --green: #5A7F52;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1A1A24;
+      --bg-surface: #24242F;
+      --text: #DDD8CE;
+      --text-secondary: #9A9488;
+      --accent: #D4A942;
+      --accent-muted: #D4A94215;
+      --accent-border: #B8860B;
+      --border: #3A3A48;
+      --code-bg: #2A2A36;
+      --tag-bg: #7B8F7215;
+      --tag-text: #8FAF82;
+      --table-stripe: #20202B;
+      --red: #D4785A;
+      --green: #8FAF82;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #1A1A24;
+    --bg-surface: #24242F;
+    --text: #DDD8CE;
+    --text-secondary: #9A9488;
+    --accent: #D4A942;
+    --accent-muted: #D4A94215;
+    --accent-border: #B8860B;
+    --border: #3A3A48;
+    --code-bg: #2A2A36;
+    --tag-bg: #7B8F7215;
+    --tag-text: #8FAF82;
+    --table-stripe: #20202B;
+    --red: #D4785A;
+    --green: #8FAF82;
+  }
+  :root[data-theme="light"] {
+    --bg: #F7F4EE;
+    --bg-surface: #EFEBE3;
+    --text: #2C2926;
+    --text-secondary: #6B635A;
+    --accent: #B8860B;
+    --accent-muted: #D4A94220;
+    --accent-border: #D4A942;
+    --border: #D4CFC6;
+    --code-bg: #E8E3D9;
+    --tag-bg: #7B8F7218;
+    --tag-text: #5A6F52;
+    --table-stripe: #F0ECE4;
+    --red: #B85C38;
+    --green: #5A7F52;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: "Hiragino Sans", "Yu Gothic", "Noto Sans JP", system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.75;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 6rem;
+  }
+
+  /* --- Header --- */
+  .page-header {
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .page-header h1 {
+    font-family: "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
+    font-size: 1.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    line-height: 1.3;
+    margin-bottom: 0.5rem;
+  }
+  .page-header .subtitle {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+  }
+  .page-header .meta {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 1rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+  }
+  .page-header .meta span {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  /* --- Sections --- */
+  section {
+    margin-bottom: 3rem;
+  }
+  section h2 {
+    font-family: "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 2px solid var(--accent-border);
+    display: inline-block;
+  }
+  section h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--text);
+  }
+  section p {
+    margin-bottom: 0.75rem;
+    font-size: 0.925rem;
+    max-width: 65ch;
+  }
+
+  /* --- Tables --- */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 1rem 0 1.5rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    font-variant-numeric: tabular-nums;
+  }
+  th {
+    text-align: left;
+    padding: 0.6rem 1rem;
+    font-weight: 600;
+    font-size: 0.8rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  td {
+    padding: 0.55rem 1rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:nth-child(even) td { background: var(--table-stripe); }
+
+  /* --- Code / Tree --- */
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1.25rem 1.5rem;
+    overflow-x: auto;
+    font-family: "SF Mono", "Menlo", "Consolas", monospace;
+    font-size: 0.8rem;
+    line-height: 1.65;
+    margin: 1rem 0 1.5rem;
+  }
+  code {
+    font-family: "SF Mono", "Menlo", "Consolas", monospace;
+    font-size: 0.85em;
+    background: var(--code-bg);
+    padding: 0.15em 0.4em;
+    border-radius: 3px;
+  }
+  pre code {
+    background: none;
+    padding: 0;
+    font-size: inherit;
+  }
+
+  /* --- Tags --- */
+  .tag {
+    display: inline-block;
+    font-size: 0.75rem;
+    padding: 0.15em 0.6em;
+    border-radius: 3px;
+    background: var(--tag-bg);
+    color: var(--tag-text);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+  .tag--accent {
+    background: var(--accent-muted);
+    color: var(--accent);
+  }
+
+  /* --- Callout --- */
+  .callout {
+    border-left: 3px solid var(--accent-border);
+    background: var(--accent-muted);
+    padding: 1rem 1.25rem;
+    border-radius: 0 6px 6px 0;
+    margin: 1.25rem 0;
+    font-size: 0.9rem;
+  }
+  .callout strong {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-size: 0.85rem;
+  }
+
+  /* --- Comparison --- */
+  .comparison {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin: 1rem 0 1.5rem;
+  }
+  @media (max-width: 600px) {
+    .comparison { grid-template-columns: 1fr; }
+  }
+  .comparison-card {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1rem 1.25rem;
+    background: var(--bg-surface);
+  }
+  .comparison-card h4 {
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .comparison-card ul {
+    list-style: none;
+    font-size: 0.85rem;
+  }
+  .comparison-card li {
+    padding: 0.2rem 0;
+    color: var(--text-secondary);
+  }
+  .comparison-card li::before {
+    content: "·";
+    margin-right: 0.5rem;
+    color: var(--accent);
+    font-weight: bold;
+  }
+
+  /* --- Flow diagram --- */
+  .flow {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin: 1rem 0 1.5rem;
+    font-size: 0.85rem;
+  }
+  .flow-node {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .flow-node--accent {
+    border-color: var(--accent-border);
+    background: var(--accent-muted);
+    color: var(--accent);
+  }
+  .flow-arrow {
+    color: var(--text-secondary);
+    font-size: 1rem;
+  }
+
+  /* --- List --- */
+  ul, ol {
+    margin: 0.5rem 0 1rem;
+    padding-left: 1.5rem;
+    font-size: 0.925rem;
+  }
+  li { margin-bottom: 0.3rem; }
+
+  /* --- Misc --- */
+  .accent { color: var(--accent); }
+  .muted { color: var(--text-secondary); font-size: 0.85rem; }
+  hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 2.5rem 0;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+
+  .badge-row {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin: 0.75rem 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+
+<div class="page">
+
+  <!-- ===== Header ===== -->
+  <header class="page-header">
+    <h1>街道アプリ アーキテクチャ規約</h1>
+    <p class="subtitle">kaido-mobile-next — Flutter モノレポ モバイルアプリケーション</p>
+    <div class="meta">
+      <span>最終更新: 2026-07-10</span>
+      <span>Platform: iOS / Android</span>
+      <span>Status: Draft</span>
+    </div>
+  </header>
+
+  <!-- ===== 概要 ===== -->
+  <section>
+    <h2>プロジェクト概要</h2>
+    <p>
+      日本の五街道（東海道・中山道・甲州道中・日光道中・奥州道中）の宿場・名所を Google Maps 上に表示するモバイルアプリ群。
+      街道ごとに独立したアプリとしてストアに公開するが、コードベースは共通のモノレポで管理する。
+    </p>
+    <p>
+      データは <code>kaido-web-next</code>（Next.js 16 + Turso）の API から取得する。
+    </p>
+
+    <div class="callout">
+      <strong>旧アーキテクチャからの主な変更点</strong>
+      旧構成では <code>kaido_core</code> を Git URL / ローカルパスで参照し、5つの独立リポジトリに分散していた。
+      新構成では melos モノレポに統合し、Riverpod / go_router / freezed でモダナイズする。
+    </div>
+  </section>
+
+  <!-- ===== 技術スタック ===== -->
+  <section>
+    <h2>技術スタック</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>カテゴリ</th><th>採用技術</th><th>備考</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>言語</td><td>Dart 3.x</td><td>Null safety 完全対応</td></tr>
+          <tr><td>フレームワーク</td><td>Flutter 3.x</td><td>iOS / Android のみ（Web 不要）</td></tr>
+          <tr><td>状態管理</td><td>Riverpod + flutter_hooks</td><td>Provider から移行</td></tr>
+          <tr><td>ルーティング</td><td>go_router</td><td>宣言的ルーティング</td></tr>
+          <tr><td>データクラス</td><td>freezed + json_serializable</td><td>Immutable モデル + JSON パース自動生成</td></tr>
+          <tr><td>API クライアント</td><td>dio + retrofit</td><td>型安全な HTTP クライアント</td></tr>
+          <tr><td>地図</td><td>google_maps_flutter</td><td>Google Maps SDK</td></tr>
+          <tr><td>DI</td><td>Riverpod</td><td>Provider で DI も兼ねる</td></tr>
+          <tr><td>モノレポ</td><td>melos</td><td>Flutter / Dart ワークスペース管理</td></tr>
+          <tr><td>Lint</td><td>very_good_analysis</td><td>VGV の厳格ルールセット</td></tr>
+          <tr><td>CI/CD</td><td>GitHub Actions</td><td>ビルド・テスト・配信</td></tr>
+          <tr><td>データベース</td><td>Turso（kaido-web-next 経由）</td><td>SQLite Edge DB</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>旧 → 新 技術マッピング</h3>
+    <div class="comparison">
+      <div class="comparison-card">
+        <h4><span style="color:var(--red)">&#x2717;</span> 旧（廃止）</h4>
+        <ul>
+          <li>Provider (ChangeNotifier)</li>
+          <li>Navigator 1.0 (push/pop)</li>
+          <li>手動 JSON パース</li>
+          <li>http パッケージ</li>
+          <li>Git URL / path 依存</li>
+          <li>SDK &gt;=2.7.0</li>
+        </ul>
+      </div>
+      <div class="comparison-card">
+        <h4><span style="color:var(--green)">&#x2713;</span> 新（採用）</h4>
+        <ul>
+          <li>Riverpod (コード生成)</li>
+          <li>go_router (宣言的)</li>
+          <li>freezed + json_serializable</li>
+          <li>dio + retrofit</li>
+          <li>melos モノレポ</li>
+          <li>SDK &gt;=3.x</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== ディレクトリ構成 ===== -->
+  <section>
+    <h2>ディレクトリ全体図</h2>
+    <pre><code>kaido-mobile-next/
+├── melos.yaml                 # モノレポ設定
+├── pubspec.yaml               # ワークスペースルート
+├── analysis_options.yaml      # 共通 Lint ルール
+│
+├── apps/
+│   ├── tokaido/               # 東海道五十三次アプリ
+│   │   ├── lib/
+│   │   │   └── main.dart      # エントリポイント + アプリ設定
+│   │   ├── assets/            # 街道固有アセット
+│   │   │   ├── json/          # フォールバック用ローカルデータ
+│   │   │   ├── images/        # 浮世絵・名所画像
+│   │   │   ├── pin/           # マーカーアイコン
+│   │   │   └── html/          # ヘルプ等の静的 HTML
+│   │   ├── android/
+│   │   ├── ios/
+│   │   └── pubspec.yaml
+│   ├── nakasendo/             # 中山道
+│   ├── koshu/                 # 甲州道中
+│   ├── nikko/                 # 日光道中
+│   └── oshu/                  # 奥州道中
+│
+├── packages/
+│   ├── kaido_ui/              # 共通 UI コンポーネント
+│   │   └── lib/
+│   │       ├── pages/         # 画面ウィジェット
+│   │       ├── widgets/       # 再利用 UI パーツ
+│   │       ├── theme/         # テーマ・カラー定義
+│   │       └── router/        # go_router 設定
+│   │
+│   ├── kaido_data/            # データ層
+│   │   └── lib/
+│   │       ├── models/        # freezed モデル
+│   │       ├── repositories/  # リポジトリ実装
+│   │       ├── providers/     # Riverpod プロバイダ
+│   │       └── datasources/   # API / ローカルデータソース
+│   │
+│   └── kaido_api/             # API クライアント
+│       └── lib/
+│           ├── client.dart    # Dio クライアント設定
+│           ├── endpoints/     # retrofit エンドポイント定義
+│           └── interceptors/  # 認証・ログ・リトライ
+│
+└── docs/                      # ドキュメント
+    └── architecture.html      # 本ドキュメント</code></pre>
+  </section>
+
+  <!-- ===== アーキテクチャ方針 ===== -->
+  <section>
+    <h2>アーキテクチャ方針</h2>
+
+    <h3>レイヤードアーキテクチャ</h3>
+    <p>
+      パッケージ単位でレイヤーを分離する。依存方向は <strong>上位 → 下位</strong> の一方向のみ。
+    </p>
+
+    <div class="flow">
+      <div class="flow-node">apps/*</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node flow-node--accent">kaido_ui</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node flow-node--accent">kaido_data</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node flow-node--accent">kaido_api</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node">kaido-web-next API</div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>レイヤー</th><th>パッケージ</th><th>責務</th><th>依存先</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="tag">Presentation</span></td>
+            <td><code>apps/*</code> + <code>kaido_ui</code></td>
+            <td>画面構成・ルーティング・ユーザー操作</td>
+            <td>kaido_data</td>
+          </tr>
+          <tr>
+            <td><span class="tag tag--accent">Domain / Data</span></td>
+            <td><code>kaido_data</code></td>
+            <td>モデル定義・リポジトリ・状態管理（Riverpod）</td>
+            <td>kaido_api</td>
+          </tr>
+          <tr>
+            <td><span class="tag">Infrastructure</span></td>
+            <td><code>kaido_api</code></td>
+            <td>HTTP 通信・JSON パース・エラーハンドリング</td>
+            <td>なし（外部 API のみ）</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>各アプリの役割</h3>
+    <p>
+      各アプリ（<code>apps/*</code>）は<strong>設定とアセットの入れ物</strong>に過ぎない。
+      ビジネスロジックやUIは全て <code>packages/</code> に集約し、アプリの <code>main.dart</code> は以下のみを担当する：
+    </p>
+    <ul>
+      <li>アプリ固有の設定（アプリ名、API コンテキスト、テーマカラー）を <code>KaidoConfig</code> として定義</li>
+      <li>Riverpod の <code>ProviderScope</code> に設定を注入</li>
+      <li>アプリ固有のアセットパスを指定</li>
+    </ul>
+
+    <pre><code>// apps/tokaido/lib/main.dart
+void main() {
+  runApp(
+    ProviderScope(
+      overrides: [
+        kaidoConfigProvider.overrideWithValue(
+          KaidoConfig(
+            appName: '東海道五十三次',
+            apiContext: 'tokaido',
+            themeColor: Color(0xFFECB404),
+            assetPrefix: 'assets',
+          ),
+        ),
+      ],
+      child: const KaidoApp(),
+    ),
+  );
+}</code></pre>
+  </section>
+
+  <!-- ===== パッケージ詳細 ===== -->
+  <section>
+    <h2>パッケージ詳細</h2>
+
+    <h3>kaido_ui — 共通 UI</h3>
+    <p>全アプリで共有する画面・ウィジェット・テーマ・ルーター。</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>ディレクトリ</th><th>内容</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>pages/</code></td><td>MapPage, InfoPage, SettingsPage, ContactPage, ImagePage, CopyrightPage</td></tr>
+          <tr><td><code>widgets/</code></td><td>BottomBar, MarkerIcon, ContactForm, PointInfoCard</td></tr>
+          <tr><td><code>theme/</code></td><td>KaidoTheme（カラー・タイポグラフィ・コンポーネントテーマ）</td></tr>
+          <tr><td><code>router/</code></td><td>GoRouter 設定（全ルート定義）</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>kaido_data — データ層</h3>
+    <p>モデル・リポジトリ・Riverpod プロバイダを集約。</p>
+
+    <pre><code>// models/point.dart
+@freezed
+class Point with _$Point {
+  const factory Point({
+    required int id,
+    required String title,
+    required double lat,
+    required double lng,
+    required String description,
+    required String category,
+    String? image,
+  }) = _Point;
+
+  factory Point.fromJson(Map&lt;String, dynamic&gt; json) =&gt;
+      _$PointFromJson(json);
+}</code></pre>
+
+    <pre><code>// repositories/point_repository.dart
+class PointRepository {
+  PointRepository(this._api, this._localStorage);
+
+  final KaidoApiClient _api;
+  final LocalDataSource _localStorage;
+
+  Future&lt;List&lt;Point&gt;&gt; getPoints(String context) async {
+    try {
+      // API から取得を試みる
+      final points = await _api.getPoints(context);
+      await _localStorage.cachePoints(context, points);
+      return points;
+    } catch (_) {
+      // フォールバック: ローカルキャッシュ or バンドル JSON
+      return _localStorage.getPoints(context);
+    }
+  }
+}</code></pre>
+
+    <h3>kaido_api — API クライアント</h3>
+    <p><code>kaido-web-next</code> の REST API（<code>/api/v1/maps</code>）を呼び出す。</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>エンドポイント</th><th>メソッド</th><th>用途</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>/api/v1/maps</code></td><td>GET</td><td>マップ一覧の取得</td></tr>
+          <tr><td><code>/api/v1/maps/:id/spots</code></td><td>GET</td><td>ポイント（宿場・名所）一覧</td></tr>
+          <tr><td><code>/api/v1/maps/:id/routes</code></td><td>GET</td><td>ルート座標（Polyline 用）</td></tr>
+          <tr><td><code>/api/v1/maps/:id/detours</code></td><td>GET</td><td>寄り道ルート座標</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <pre><code>// endpoints/kaido_api_client.dart
+@RestApi()
+abstract class KaidoApiClient {
+  factory KaidoApiClient(Dio dio) = _KaidoApiClient;
+
+  @GET('/api/v1/maps/{context}/spots')
+  Future&lt;List&lt;Point&gt;&gt; getPoints(@Path('context') String context);
+
+  @GET('/api/v1/maps/{context}/routes')
+  Future&lt;List&lt;RoutePoint&gt;&gt; getRoutes(@Path('context') String context);
+
+  @GET('/api/v1/maps/{context}/detours')
+  Future&lt;List&lt;Detour&gt;&gt; getDetours(@Path('context') String context);
+}</code></pre>
+  </section>
+
+  <!-- ===== データフロー ===== -->
+  <section>
+    <h2>データフロー</h2>
+
+    <h3>オフラインファースト戦略</h3>
+    <p>
+      ネットワーク不通時でもアプリが動作するよう、<strong>ローカルファースト</strong>で設計する。
+    </p>
+
+    <ol>
+      <li>アプリ起動時、ローカルキャッシュ（SharedPreferences or ファイル）からデータを読み込む</li>
+      <li>キャッシュがなければバンドル済み JSON（<code>assets/json/</code>）をフォールバックとして使用</li>
+      <li>バックグラウンドで API からデータを取得し、キャッシュを更新</li>
+      <li>設定画面から手動データ更新も可能（現行の「データアップデート」機能を継承）</li>
+    </ol>
+
+    <div class="flow">
+      <div class="flow-node">起動</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node">キャッシュ確認</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node flow-node--accent">キャッシュ or バンドル JSON で表示</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node">バックグラウンド API 同期</div>
+    </div>
+  </section>
+
+  <!-- ===== 画面一覧 ===== -->
+  <section>
+    <h2>画面一覧</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>画面</th><th>ルート</th><th>機能</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>地図画面</td>
+            <td><code>/</code></td>
+            <td>Google Maps にポイントマーカー + ルート Polyline を表示。GPS 追従・コンパスモード</td>
+          </tr>
+          <tr>
+            <td>ポイント詳細</td>
+            <td><code>/info/:id</code></td>
+            <td>宿場・名所の詳細情報。タイトル・画像・説明文</td>
+          </tr>
+          <tr>
+            <td>画像拡大</td>
+            <td><code>/info/:id/image</code></td>
+            <td>浮世絵・名所画像の拡大表示</td>
+          </tr>
+          <tr>
+            <td>設定</td>
+            <td><code>/settings</code></td>
+            <td>はじめに・ヘルプ・データ更新・著作権情報</td>
+          </tr>
+          <tr>
+            <td>問い合わせ</td>
+            <td><code>/contact</code></td>
+            <td>問い合わせフォーム（メール送信）</td>
+          </tr>
+          <tr>
+            <td>位置選択</td>
+            <td><code>/contact/map</code></td>
+            <td>問い合わせ用の位置情報選択（地図上でピン指定）</td>
+          </tr>
+          <tr>
+            <td>HTML 表示</td>
+            <td><code>/html/:page</code></td>
+            <td>静的 HTML コンテンツ（はじめに / ヘルプ / 五街道紹介）</td>
+          </tr>
+          <tr>
+            <td>著作権情報</td>
+            <td><code>/copyright</code></td>
+            <td>著作権・ライセンス情報の表示</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===== 各アプリの差分 ===== -->
+  <section>
+    <h2>各アプリの差分</h2>
+    <p>5つのアプリで異なるのは以下の設定・アセットのみ。コードは全て共通パッケージに集約する。</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>アプリ</th><th>API Context</th><th>ポイント数</th><th>画像</th><th>Bundle ID</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>東海道五十三次</td>
+            <td><code>tokaido</code></td>
+            <td>482</td>
+            <td>55枚</td>
+            <td><code>com.kaido.tokaido</code></td>
+          </tr>
+          <tr>
+            <td>中山道六十九次</td>
+            <td><code>nakasendo</code></td>
+            <td>582</td>
+            <td>70枚</td>
+            <td><code>com.kaido.nakasendo</code></td>
+          </tr>
+          <tr>
+            <td>甲州道中</td>
+            <td><code>koshu</code></td>
+            <td>236</td>
+            <td>0枚</td>
+            <td><code>com.kaido.koshu</code></td>
+          </tr>
+          <tr>
+            <td>日光道中</td>
+            <td><code>nikko</code></td>
+            <td>159</td>
+            <td>0枚</td>
+            <td><code>com.kaido.nikko</code></td>
+          </tr>
+          <tr>
+            <td>奥州道中</td>
+            <td><code>oshu</code></td>
+            <td>203</td>
+            <td>0枚</td>
+            <td><code>com.kaido.oshu</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===== 状態管理 ===== -->
+  <section>
+    <h2>状態管理（Riverpod）</h2>
+    <p>
+      Riverpod のコード生成（<code>@riverpod</code> アノテーション）を使用する。
+      プロバイダは <code>kaido_data/lib/providers/</code> に配置。
+    </p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>プロバイダ</th><th>型</th><th>責務</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>kaidoConfigProvider</code></td>
+            <td>Provider&lt;KaidoConfig&gt;</td>
+            <td>アプリ固有設定（名前・APIコンテキスト・テーマ色）</td>
+          </tr>
+          <tr>
+            <td><code>pointsProvider</code></td>
+            <td>AsyncNotifier&lt;List&lt;Point&gt;&gt;</td>
+            <td>ポイントデータの取得・キャッシュ管理</td>
+          </tr>
+          <tr>
+            <td><code>routesProvider</code></td>
+            <td>AsyncNotifier&lt;Set&lt;Polyline&gt;&gt;</td>
+            <td>ルート Polyline の取得・キャッシュ管理</td>
+          </tr>
+          <tr>
+            <td><code>detoursProvider</code></td>
+            <td>AsyncNotifier&lt;Set&lt;Polyline&gt;&gt;</td>
+            <td>寄り道ルートの取得・キャッシュ管理</td>
+          </tr>
+          <tr>
+            <td><code>mapControllerProvider</code></td>
+            <td>StateNotifier&lt;MapState&gt;</td>
+            <td>GPS 追従・コンパスモード・カメラ位置</td>
+          </tr>
+          <tr>
+            <td><code>markerVisibilityProvider</code></td>
+            <td>StateProvider&lt;bool&gt;</td>
+            <td>マーカー表示/非表示の切替</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <pre><code>// providers/points_provider.dart
+@riverpod
+class Points extends _$Points {
+  @override
+  Future&lt;List&lt;Point&gt;&gt; build() async {
+    final config = ref.watch(kaidoConfigProvider);
+    final repository = ref.watch(pointRepositoryProvider);
+    return repository.getPoints(config.apiContext);
+  }
+
+  Future&lt;void&gt; refresh() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      final config = ref.read(kaidoConfigProvider);
+      final repository = ref.read(pointRepositoryProvider);
+      return repository.fetchAndCache(config.apiContext);
+    });
+  }
+}</code></pre>
+  </section>
+
+  <!-- ===== melos 設定 ===== -->
+  <section>
+    <h2>melos 設定</h2>
+    <pre><code># melos.yaml
+name: kaido_mobile
+sdkPath: .fvm/flutter_sdk
+
+packages:
+  - apps/*
+  - packages/*
+
+command:
+  bootstrap:
+    usePubspecOverrides: true
+
+scripts:
+  analyze:
+    run: melos exec -- dart analyze .
+    description: Run dart analyze in all packages
+
+  test:
+    run: melos exec -- flutter test
+    description: Run tests in all packages
+
+  build:gen:
+    run: melos exec -- dart run build_runner build --delete-conflicting-outputs
+    packageFilters:
+      dependsOn: build_runner
+    description: Run code generation (freezed, riverpod, retrofit)
+
+  clean:
+    run: melos exec -- flutter clean
+    description: Clean all packages</code></pre>
+  </section>
+
+  <!-- ===== 環境変数 ===== -->
+  <section>
+    <h2>環境変数</h2>
+    <p>
+      旧構成の <code>.env</code> + <code>flutter_dotenv</code> を廃止し、
+      <code>--dart-define-from-file</code> で環境変数を注入する。
+    </p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>変数名</th><th>用途</th><th>例</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>API_BASE_URL</code></td><td>kaido-web-next API のベース URL</td><td><code>https://kaido.example.com</code></td></tr>
+          <tr><td><code>API_TOKEN</code></td><td>API 認証用 Bearer トークン</td><td><code>sk-xxxxx</code></td></tr>
+          <tr><td><code>GOOGLE_MAPS_API_KEY</code></td><td>Google Maps API キー</td><td><code>AIzaSy...</code></td></tr>
+          <tr><td><code>CONTACT_EMAIL</code></td><td>問い合わせ送信先メールアドレス</td><td><code>info@kaido.jp</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <pre><code># ビルドコマンド例
+flutter run --dart-define-from-file=env/development.json
+
+# env/development.json
+{
+  "API_BASE_URL": "https://dev.kaido.example.com",
+  "API_TOKEN": "dev-token",
+  "GOOGLE_MAPS_API_KEY": "AIzaSy...",
+  "CONTACT_EMAIL": "dev@kaido.jp"
+}</code></pre>
+
+    <div class="callout">
+      <strong>注意</strong>
+      <code>env/*.json</code> は <code>.gitignore</code> に追加し、秘密情報をリポジトリに含めない。
+      CI/CD では GitHub Secrets から注入する。
+    </div>
+  </section>
+
+  <!-- ===== エラーハンドリング ===== -->
+  <section>
+    <h2>エラーハンドリング</h2>
+    <p>
+      kaido-web-next が採用している <strong>Result 型パターン</strong>に合わせ、
+      API 層でのエラーは <code>sealed class</code> で表現する。
+    </p>
+
+    <pre><code>// kaido_api/lib/result.dart
+sealed class ApiResult&lt;T&gt; {
+  const ApiResult();
+}
+
+class ApiSuccess&lt;T&gt; extends ApiResult&lt;T&gt; {
+  const ApiSuccess(this.data);
+  final T data;
+}
+
+class ApiFailure&lt;T&gt; extends ApiResult&lt;T&gt; {
+  const ApiFailure(this.error, [this.stackTrace]);
+  final Object error;
+  final StackTrace? stackTrace;
+}
+
+// 使用例
+final result = await api.getPoints('tokaido');
+switch (result) {
+  case ApiSuccess(:final data):
+    // ポイントを表示
+  case ApiFailure(:final error):
+    // フォールバック or エラー表示
+}</code></pre>
+  </section>
+
+  <!-- ===== 地図パフォーマンス ===== -->
+  <section>
+    <h2>地図マーカーのパフォーマンス最適化</h2>
+    <p>
+      クラスタリングは使用しない。カメラの表示範囲（VisibleRegion）内のマーカーのみを描画する。
+    </p>
+    <ul>
+      <li><strong>ビューポートフィルタリング</strong>: <code>onCameraIdle</code> で <code>getVisibleRegion()</code> を取得し、範囲内のポイントだけを <code>Marker</code> として Set に反映</li>
+      <li><strong>カスタムマーカー画像のキャッシュ</strong>: <code>BitmapDescriptor</code> をカテゴリごとに起動時一括生成し再利用</li>
+    </ul>
+  </section>
+
+  <!-- ===== 外部連携 ===== -->
+  <section>
+    <h2>外部サービス連携</h2>
+    <div class="flow">
+      <div class="flow-node">Flutter App</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node flow-node--accent">kaido-web-next API</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node">Turso DB</div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>サービス</th><th>用途</th><th>認証</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>kaido-web-next</td>
+            <td>街道データ API（ポイント・ルート・寄り道）</td>
+            <td>Bearer Token</td>
+          </tr>
+          <tr>
+            <td>Google Maps SDK</td>
+            <td>地図表示・マーカー・Polyline・位置情報</td>
+            <td>API Key（iOS/Android 別）</td>
+          </tr>
+          <tr>
+            <td>メール送信</td>
+            <td>問い合わせフォームからのメール送信</td>
+            <td>端末のメールアプリ経由</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===== CI/CD ===== -->
+  <section>
+    <h2>CI/CD</h2>
+    <h3>GitHub Actions ワークフロー</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>トリガー</th><th>ジョブ</th><th>内容</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>PR 作成・更新</td>
+            <td>Analyze &amp; Test</td>
+            <td><code>melos analyze</code> + <code>melos test</code></td>
+          </tr>
+          <tr>
+            <td>main マージ</td>
+            <td>Build (Dev)</td>
+            <td>全5アプリの開発ビルド生成</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===== リリースフロー ===== -->
+  <section>
+    <h2>リリースフロー（ローカル自動化）</h2>
+    <p>
+      ストア提出までをローカルマシンから <code>release/release.sh</code> で自動実行する。
+      アプリごとに個別指定が可能。
+    </p>
+
+    <h3>コマンド一覧</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>コマンド</th><th>説明</th><th>例</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>release</code></td>
+            <td>ビルド + ストア提出</td>
+            <td><code>./release/release.sh release tokaido ios</code></td>
+          </tr>
+          <tr>
+            <td><code>build</code></td>
+            <td>ビルドのみ（提出なし）</td>
+            <td><code>./release/release.sh build nakasendo android</code></td>
+          </tr>
+          <tr>
+            <td><code>version</code></td>
+            <td>バージョン番号更新</td>
+            <td><code>./release/release.sh version tokaido 3.2.0</code></td>
+          </tr>
+          <tr>
+            <td><code>setup</code></td>
+            <td>認証情報の初期セットアップ</td>
+            <td><code>./release/release.sh setup</code></td>
+          </tr>
+          <tr>
+            <td><code>status</code></td>
+            <td>認証情報の状態確認</td>
+            <td><code>./release/release.sh status</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>リリースフロー</h3>
+    <div class="flow">
+      <div class="flow-node">version 更新</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node">flutter build</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node flow-node--accent">ストア提出</div>
+    </div>
+
+    <div class="comparison">
+      <div class="comparison-card">
+        <h4>iOS</h4>
+        <ul>
+          <li><code>flutter build ipa</code></li>
+          <li><code>xcrun altool --upload-app</code></li>
+          <li>App Store Connect API Key (.p8)</li>
+          <li>TestFlight 経由で配信</li>
+        </ul>
+      </div>
+      <div class="comparison-card">
+        <h4>Android</h4>
+        <ul>
+          <li><code>flutter build appbundle</code></li>
+          <li><code>fastlane supply</code></li>
+          <li>Google Play Service Account JSON</li>
+          <li>内部テストトラックに配信</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>認証情報の管理</h3>
+    <p>
+      認証情報は <code>.credentials/</code> に配置（<code>.gitignore</code> に追加済み）。
+      初回は <code>./release/release.sh setup</code> で対話的にセットアップする。
+    </p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>ファイル</th><th>用途</th><th>取得元</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>apple_api_key.p8</code></td>
+            <td>App Store Connect API 認証</td>
+            <td>App Store Connect → 統合 → App Store Connect API</td>
+          </tr>
+          <tr>
+            <td><code>apple_api_config.env</code></td>
+            <td>Key ID / Issuer ID</td>
+            <td>setup コマンドで自動生成</td>
+          </tr>
+          <tr>
+            <td><code>google_play_service_account.json</code></td>
+            <td>Google Play Console API 認証</td>
+            <td>Google Cloud Console → IAM → サービスアカウント</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout">
+      <strong>前提条件</strong>
+      iOS: Xcode + 有効な Apple Developer Program。
+      Android: <code>gem install fastlane</code> が必要。
+    </div>
+  </section>
+
+  <hr>
+
+  <!-- ===== マイグレーション計画 ===== -->
+  <section>
+    <h2>マイグレーション計画</h2>
+    <p>既存の5リポジトリから新モノレポへの段階的な移行手順。</p>
+
+    <h3>Phase 1: モノレポ基盤構築</h3>
+    <ul>
+      <li>melos ワークスペースのセットアップ</li>
+      <li><code>kaido_api</code> パッケージ作成（kaido-web-next の API クライアント）</li>
+      <li><code>kaido_data</code> パッケージ作成（freezed モデル + リポジトリ）</li>
+      <li><code>kaido_ui</code> パッケージ作成（kaido_core のコード移植 + Riverpod 化）</li>
+    </ul>
+
+    <h3>Phase 2: 東海道アプリで検証</h3>
+    <ul>
+      <li><code>apps/tokaido</code> を新アーキテクチャで構築</li>
+      <li>既存の東海道アプリと動作を比較検証</li>
+      <li>Google Maps のマーカーパフォーマンスを実機で確認</li>
+    </ul>
+
+    <h3>Phase 3: 全アプリ展開</h3>
+    <ul>
+      <li>残り4アプリのプロジェクト作成（tokaido をテンプレートに）</li>
+      <li>アプリ固有のアセット・設定を配置</li>
+      <li>CI/CD パイプラインの構築</li>
+    </ul>
+
+    <h3>Phase 4: ストア移行</h3>
+    <ul>
+      <li>テストフライト / 内部テストで配信</li>
+      <li>既存アプリのアップデートとして配信（バンドルID を維持）</li>
+    </ul>
+  </section>
+
+</div>
