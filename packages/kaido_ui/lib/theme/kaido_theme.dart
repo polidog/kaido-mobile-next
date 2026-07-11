@@ -12,8 +12,8 @@ class KaidoTheme {
       colorScheme: colorScheme,
       fontFamily: fontFamily,
       appBarTheme: AppBarTheme(
-        backgroundColor: seedColor,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black87,
         centerTitle: true,
         elevation: 0,
       ),
