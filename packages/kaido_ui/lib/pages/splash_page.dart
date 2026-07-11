@@ -37,19 +37,7 @@ class _SplashPageState extends ConsumerState<SplashPage> {
     return Scaffold(
       backgroundColor: config.themeColor,
       body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              config.appName,
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 24),
-            const CircularProgressIndicator(),
-          ],
-        ),
+        child: Image.asset('assets/splash/title.png'),
       ),
     );
   }
