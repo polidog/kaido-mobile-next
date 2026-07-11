@@ -7,6 +7,10 @@ environment:
 
 workspace:
   - apps/tokaido
+  - apps/nakasendo
+  - apps/koshu
+  - apps/nikko
+  - apps/oshu
   - packages/kaido_api
   - packages/kaido_data
   - packages/kaido_ui
