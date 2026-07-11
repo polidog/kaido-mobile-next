@@ -1,4 +1,4 @@
-package com.kaido.tokaido
+package com.groundbase.tokaido
 
 import io.flutter.embedding.android.FlutterActivity
 

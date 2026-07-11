@@ -24,7 +24,7 @@ if (hasKeystore) {
 }
 
 android {
-    namespace = "com.kaido.tokaido"
+    namespace = "com.groundbase.tokaido"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -35,7 +35,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.kaido.tokaido"
+        applicationId = "com.groundbase.tokaido"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

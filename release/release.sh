@@ -7,19 +7,19 @@ CREDENTIALS_DIR="$ROOT_DIR/.credentials"
 
 # ── 対応アプリ一覧 ─────────────────────────────────────
 declare -A APP_BUNDLE_IOS=(
-  [tokaido]="com.kaido.tokaido"
-  [nakasendo]="com.kaido.nakasendo"
-  [koshu]="com.kaido.koshu"
-  [nikko]="com.kaido.nikko"
-  [oshu]="com.kaido.oshu"
+  [tokaido]="com.ground-base.tokaido"
+  [nakasendo]="com.ground-base.nakasendo"
+  [koshu]="com.ground-base.koshudo"
+  [nikko]="com.ground-base.nikkodo"
+  [oshu]="com.ground-base.oshudo"
 )
 
 declare -A APP_BUNDLE_ANDROID=(
-  [tokaido]="com.kaido.tokaido"
-  [nakasendo]="com.kaido.nakasendo"
-  [koshu]="com.kaido.koshu"
-  [nikko]="com.kaido.nikko"
-  [oshu]="com.kaido.oshu"
+  [tokaido]="com.groundbase.tokaido"
+  [nakasendo]="com.groundbase.nakasendo"
+  [koshu]="com.groundbase.koshudo"
+  [nikko]="com.groundbase.nikkodo"
+  [oshu]="com.groundbase.oshudo"
 )
 
 declare -A APP_DISPLAY_NAME=(
