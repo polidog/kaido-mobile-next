@@ -8,9 +8,9 @@ environment:
 workspace:
   - apps/tokaido
   - apps/nakasendo
-  - apps/koshu
-  - apps/nikko
-  - apps/oshu
+  - apps/koshudo
+  - apps/nikkodo
+  - apps/oshudo
   - packages/kaido_api
   - packages/kaido_data
   - packages/kaido_ui
