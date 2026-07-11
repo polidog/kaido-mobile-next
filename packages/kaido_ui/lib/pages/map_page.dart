@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:kaido_data/kaido_data.dart';
 import 'package:kaido_ui/widgets/bottom_bar.dart';
@@ -12,6 +13,24 @@ const LatLng _fallbackTarget = LatLng(35.6812, 139.7671);
 
 /// Fallback camera zoom level, paired with [_fallbackTarget].
 const double _fallbackZoom = 14;
+
+/// Returns the asset path for the pin image corresponding to [category].
+String _pinAssetForCategory(String category) {
+  switch (category) {
+    case '宿場':
+      return 'assets/pin/pin_1.png';
+    case '一里塚':
+      return 'assets/pin/pin_2.png';
+    case '名所':
+      return 'assets/pin/pin_3.png';
+    case '浮世絵ポイント':
+      return 'assets/pin/pin_4.png';
+    case '見付':
+      return 'assets/pin/pin_5.png';
+    default:
+      return 'assets/pin/pin_1.png';
+  }
+}
 
 bool _isWithinBounds(LatLngBounds bounds, LatLng point) {
   return point.latitude >= bounds.southwest.latitude &&
@@ -43,6 +62,30 @@ class MapPage extends ConsumerStatefulWidget {
 class _MapPageState extends ConsumerState<MapPage> {
   GoogleMapController? _controller;
   CameraPosition? _lastCameraPosition;
+  Map<String, BitmapDescriptor> _markerIcons = {};
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_loadMarkerIcons());
+  }
+
+  Future<void> _loadMarkerIcons() async {
+    const categories = ['宿場', '一里塚', '名所', '浮世絵ポイント', '見付'];
+    final icons = <String, BitmapDescriptor>{};
+    for (final category in categories) {
+      final path = _pinAssetForCategory(category);
+      icons[category] = await BitmapDescriptor.fromAssetImage(
+        const ImageConfiguration(size: Size(48, 48)),
+        path,
+      );
+    }
+    if (mounted) {
+      setState(() {
+        _markerIcons = icons;
+      });
+    }
+  }
 
   Future<void> _handleCameraIdle() async {
     final controller = _controller;
@@ -153,7 +196,12 @@ class _MapPageState extends ConsumerState<MapPage> {
                 (point) => Marker(
                   markerId: MarkerId('point_${point.id}'),
                   position: LatLng(point.lat, point.lng),
-                  infoWindow: InfoWindow(title: point.title),
+                  icon: _markerIcons[point.category] ??
+                      BitmapDescriptor.defaultMarker,
+                  infoWindow: InfoWindow(
+                    title: '${point.title} →',
+                    onTap: () => context.push('/info/${point.id}'),
+                  ),
                 ),
               )
               .toSet()
