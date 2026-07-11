@@ -46,7 +46,12 @@ class _ContactPageState extends ConsumerState<ContactPage> {
       },
     );
 
-    final launched = await launchUrl(mailUri);
+    bool launched;
+    try {
+      launched = await launchUrl(mailUri);
+    } on Exception {
+      launched = false;
+    }
     if (!launched && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('メールアプリを起動できませんでした')),
