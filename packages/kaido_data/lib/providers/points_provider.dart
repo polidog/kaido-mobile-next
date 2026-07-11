@@ -1,0 +1,23 @@
+import 'package:kaido_data/models/point.dart';
+import 'package:kaido_data/providers/kaido_config_provider.dart';
+import 'package:kaido_data/providers/repository_providers.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+part 'points_provider.g.dart';
+
+/// Manages fetching and caching of [Point] data for the current app.
+@riverpod
+class Points extends _$Points {
+  @override
+  Future<List<Point>> build() async {
+    final config = ref.watch(kaidoConfigProvider);
+    final repo = ref.watch(pointRepositoryProvider);
+    return repo.getPoints(config.apiContext);
+  }
+
+  /// Refreshes the points data, re-running [build].
+  Future<void> refresh() async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(build);
+  }
+}

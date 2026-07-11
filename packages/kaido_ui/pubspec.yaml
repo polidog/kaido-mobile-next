@@ -13,6 +13,8 @@ dependencies:
     sdk: flutter
   flutter_riverpod: ^3.3.2
   go_router: ^17.3.0
+  kaido_data:
+    path: ../kaido_data
 
 dev_dependencies:
   flutter_test:
