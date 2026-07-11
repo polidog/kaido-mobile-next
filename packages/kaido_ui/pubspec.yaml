@@ -22,5 +22,6 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  geolocator: ^14.0.3
   very_good_analysis: ^10.3.0
   webview_flutter_platform_interface: ^2.15.1
