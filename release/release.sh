@@ -9,28 +9,28 @@ CREDENTIALS_DIR="$ROOT_DIR/.credentials"
 declare -A APP_BUNDLE_IOS=(
   [tokaido]="com.ground-base.tokaido"
   [nakasendo]="com.ground-base.nakasendo"
-  [koshu]="com.ground-base.koshudo"
-  [nikko]="com.ground-base.nikkodo"
-  [oshu]="com.ground-base.oshudo"
+  [koshudo]="com.ground-base.koshudo"
+  [nikkodo]="com.ground-base.nikkodo"
+  [oshudo]="com.ground-base.oshudo"
 )
 
 declare -A APP_BUNDLE_ANDROID=(
   [tokaido]="com.groundbase.tokaido"
   [nakasendo]="com.groundbase.nakasendo"
-  [koshu]="com.groundbase.koshudo"
-  [nikko]="com.groundbase.nikkodo"
-  [oshu]="com.groundbase.oshudo"
+  [koshudo]="com.groundbase.koshudo"
+  [nikkodo]="com.groundbase.nikkodo"
+  [oshudo]="com.groundbase.oshudo"
 )
 
 declare -A APP_DISPLAY_NAME=(
   [tokaido]="東海道五十三次"
   [nakasendo]="中山道六十九次"
-  [koshu]="甲州道中"
-  [nikko]="日光道中"
-  [oshu]="奥州道中"
+  [koshudo]="甲州道中四十四次"
+  [nikkodo]="日光道中二十一次"
+  [oshudo]="奥州道中十次"
 )
 
-ALL_APPS=(tokaido nakasendo koshu nikko oshu)
+ALL_APPS=(tokaido nakasendo koshudo nikkodo oshudo)
 
 # ── ヘルパー ───────────────────────────────────────────
 RED='\033[0;31m'
@@ -57,7 +57,7 @@ Commands:
   setup                       認証情報のセットアップ
 
 Arguments:
-  <app>       アプリ名: tokaido | nakasendo | koshu | nikko | oshu
+  <app>       アプリ名: tokaido | nakasendo | koshudo | nikkodo | oshudo
   <platform>  プラットフォーム: ios | android | all
 
 Examples:
