@@ -4,13 +4,23 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'api_service_providers.g.dart';
 
+/// Base URL of the `kaido-web-next` API, injected at build time via
+/// `--dart-define-from-file`.
+const _apiBaseUrl = String.fromEnvironment('API_BASE_URL');
+
+/// Bearer token for the `kaido-web-next` API, injected at build time via
+/// `--dart-define-from-file`.
+const _apiToken = String.fromEnvironment('API_TOKEN');
+
 /// Provides the [KaidoApiConfig] used to build the Dio client.
 ///
-/// The base URL and token are provisional and should be overridden by the
-/// app with values injected via `--dart-define-from-file`.
+/// The base URL and token are read from `--dart-define-from-file` values
+/// injected by the app at build time.
 @riverpod
 KaidoApiConfig kaidoApiConfig(Ref ref) {
-  return KaidoApiConfig(baseUrl: '', tokenProvider: () => '');
+  assert(_apiBaseUrl.isNotEmpty, 'API_BASE_URL must be set via --dart-define');
+  assert(_apiToken.isNotEmpty, 'API_TOKEN must be set via --dart-define');
+  return KaidoApiConfig(baseUrl: _apiBaseUrl, tokenProvider: () => _apiToken);
 }
 
 /// Provides the shared [Dio] instance configured with the standard Kaido

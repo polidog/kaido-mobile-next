@@ -6,6 +6,7 @@ environment:
   sdk: ^3.12.0
 
 workspace:
+  - apps/tokaido
   - packages/kaido_api
   - packages/kaido_data
   - packages/kaido_ui
