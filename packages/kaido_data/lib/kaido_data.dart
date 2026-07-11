@@ -14,6 +14,7 @@ export 'models/map_state.dart';
 export 'models/point.dart';
 export 'models/route_point.dart';
 export 'providers/api_service_providers.dart';
+export 'providers/contact_config_provider.dart';
 export 'providers/datasource_providers.dart';
 export 'providers/detours_provider.dart';
 export 'providers/kaido_config_provider.dart';
