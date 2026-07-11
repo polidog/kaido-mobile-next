@@ -30,6 +30,13 @@ class _FakePoints extends Points {
   ];
 }
 
+/// Test double that provides a fixed, immediately-available empty routes
+/// list so widget tests don't hit the real repository chain.
+class _FakeRoutes extends Routes {
+  @override
+  Future<List<RoutePoint>> build() async => const [];
+}
+
 class _FakeAssetLoader implements AssetLoader {
   @override
   Future<String> loadString(String key) async => '<html><body>fake</body></html>';
@@ -81,6 +88,8 @@ void main() {
   final overrides = [
     kaidoConfigProvider.overrideWithValue(_testConfig),
     pointsProvider.overrideWith(_FakePoints.new),
+    routesProvider.overrideWith(_FakeRoutes.new),
+    initialCameraPositionProvider.overrideWith((ref) async => null),
     assetLoaderProvider.overrideWithValue(_FakeAssetLoader()),
   ];
 

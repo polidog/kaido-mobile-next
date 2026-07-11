@@ -15,5 +15,6 @@ export 'pages/splash_page.dart';
 export 'router/kaido_route_paths.dart';
 export 'router/kaido_router.dart';
 export 'theme/kaido_theme.dart';
+export 'widgets/bottom_bar.dart';
 export 'widgets/contact_form.dart';
 export 'widgets/point_info_card.dart';
