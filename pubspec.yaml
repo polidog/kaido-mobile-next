@@ -3,10 +3,11 @@ publish_to: none
 version: 0.0.0
 
 environment:
-  sdk: ^3.9.0
+  sdk: ^3.12.0
 
 workspace:
   - packages/kaido_api
+  - packages/kaido_ui
 
 dev_dependencies:
   melos: ^8.2.0
