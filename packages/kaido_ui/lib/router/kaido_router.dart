@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'package:kaido_ui/pages/contact_map_page.dart';
 import 'package:kaido_ui/pages/contact_page.dart';
@@ -43,11 +44,15 @@ GoRouter createKaidoRouter({
       ),
       GoRoute(
         path: KaidoRoutePaths.contact,
-        builder: (context, state) => const ContactPage(),
+        builder: (context, state) => ContactPage(
+          initialSubject: state.extra as String?,
+        ),
         routes: [
           GoRoute(
             path: KaidoRoutePaths.contactMap,
-            builder: (context, state) => const ContactMapPage(),
+            builder: (context, state) => ContactMapPage(
+              initialLocation: state.extra as LatLng?,
+            ),
           ),
         ],
       ),
