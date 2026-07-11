@@ -15,7 +15,7 @@ import 'package:kaido_ui/router/kaido_route_paths.dart';
 
 /// Creates the [GoRouter] shared by all Kaido apps.
 GoRouter createKaidoRouter({
-  String initialLocation = KaidoRoutePaths.home,
+  String initialLocation = KaidoRoutePaths.splash,
 }) {
   return GoRouter(
     initialLocation: initialLocation,
