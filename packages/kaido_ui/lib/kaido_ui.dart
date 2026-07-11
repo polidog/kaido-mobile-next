@@ -1,0 +1,17 @@
+/// Shared UI (theme, router, app shell) for the Kaido mobile apps.
+library;
+
+export 'kaido_app.dart';
+export 'kaido_config.dart';
+export 'pages/contact_map_page.dart';
+export 'pages/contact_page.dart';
+export 'pages/copyright_page.dart';
+export 'pages/html_page.dart';
+export 'pages/image_page.dart';
+export 'pages/info_page.dart';
+export 'pages/map_page.dart';
+export 'pages/settings_page.dart';
+export 'pages/splash_page.dart';
+export 'router/kaido_route_paths.dart';
+export 'router/kaido_router.dart';
+export 'theme/kaido_theme.dart';
