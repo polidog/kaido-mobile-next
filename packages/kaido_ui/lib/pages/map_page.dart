@@ -146,7 +146,6 @@ class _MapPageState extends ConsumerState<MapPage> {
       });
 
     return Scaffold(
-      appBar: AppBar(title: const Text('地図')),
       body: initialCameraAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stackTrace) => _buildMap(

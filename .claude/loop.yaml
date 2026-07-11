@@ -1,0 +1,15 @@
+review:
+  codeQuality: { maxFixes: 2 }
+  reviewer:    { maxRounds: 2 }
+  test:        { scope: unit, maxRetries: 3 }
+  copilot:     { rounds: 0 }
+debug:
+  enabled: false
+memory:
+  enabled: true
+agents:
+  code-quality:   { enabled: true }
+  reviewer:       { enabled: true }
+  test-builder:   { enabled: false }
+  perf:           { enabled: false }
+  copilot-review: { enabled: false }
