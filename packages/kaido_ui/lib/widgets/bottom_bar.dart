@@ -5,8 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:kaido_data/kaido_data.dart';
 import 'package:kaido_ui/router/kaido_route_paths.dart';
 
-/// Bottom navigation bar shown on the map screen: GPS follow toggle, compass
-/// mode toggle, marker visibility toggle, and settings navigation.
+/// Bottom navigation bar shown on the map screen with three buttons:
+/// GPS, ポイント (marker visibility), and 設定 (settings).
 class BottomBar extends ConsumerWidget {
   /// Creates a [BottomBar].
   const BottomBar({super.key});
@@ -37,43 +37,83 @@ class BottomBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final mapState = ref.watch(mapControllerProvider);
     final markersVisible = ref.watch(markerVisibilityProvider);
-    final activeColor = Theme.of(context).colorScheme.primary;
+    final activeColor = ref.watch(kaidoConfigProvider).themeColor;
+    const defaultColor = Colors.grey;
 
     return BottomAppBar(
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          IconButton(
-            tooltip: '現在地',
-            icon: Icon(
-              Icons.my_location,
-              color: mapState.isFollowingUser ? activeColor : null,
+          // GPS button
+          Expanded(
+            child: InkWell(
+              onTap: () => _handleGpsTap(context, ref),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.navigation,
+                    color:
+                        mapState.isFollowingUser ? activeColor : defaultColor,
+                  ),
+                  Text(
+                    'GPS',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color:
+                          mapState.isFollowingUser ? activeColor : defaultColor,
+                    ),
+                  ),
+                ],
+              ),
             ),
-            onPressed: () => _handleGpsTap(context, ref),
           ),
-          IconButton(
-            tooltip: 'コンパス',
-            icon: Icon(
-              Icons.explore,
-              color: mapState.isCompassMode ? activeColor : null,
+          // ポイント button
+          Expanded(
+            child: InkWell(
+              onTap: () => ref.read(markerVisibilityProvider.notifier).state =
+                  !markersVisible,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.location_on,
+                    color: markersVisible ? activeColor : defaultColor,
+                  ),
+                  Text(
+                    'ポイント',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: markersVisible ? activeColor : defaultColor,
+                    ),
+                  ),
+                ],
+              ),
             ),
-            onPressed: () =>
-                ref.read(mapControllerProvider.notifier).toggleCompassMode(),
           ),
-          IconButton(
-            tooltip: 'ポイント表示切替',
-            icon: Icon(
-              Icons.place,
-              color: markersVisible ? activeColor : null,
+          // 設定 button
+          Expanded(
+            child: InkWell(
+              onTap: () => context.push(KaidoRoutePaths.settings),
+              child: const Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.settings,
+                    color: defaultColor,
+                  ),
+                  Text(
+                    '設定',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: defaultColor,
+                    ),
+                  ),
+                ],
+              ),
             ),
-            onPressed: () =>
-                ref.read(markerVisibilityProvider.notifier).state =
-                    !markersVisible,
-          ),
-          IconButton(
-            tooltip: '設定',
-            icon: const Icon(Icons.settings),
-            onPressed: () => context.push(KaidoRoutePaths.settings),
           ),
         ],
       ),
