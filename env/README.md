@@ -29,8 +29,18 @@
 | --- | --- |
 | `API_BASE_URL` | kaido-web-next API のベース URL |
 | `API_TOKEN` | API 認証用 Bearer トークン |
-| `GOOGLE_MAPS_API_KEY` | Google Maps API キー |
+| `GOOGLE_API_KEY_IOS` | iOS 用 Google Maps API キー |
+| `GOOGLE_API_KEY_ANDROID` | Android 用 Google Maps API キー |
 | `CONTACT_EMAIL` | 問い合わせ送信先メールアドレス |
+
+## Google Maps API キーの流れ
+
+- **Android**: Flutter ツールが dart-define を Gradle プロパティ（base64）として渡すため、
+  各アプリの `android/app/build.gradle.kts` がデコードして `GOOGLE_API_KEY_ANDROID` を
+  `AndroidManifest.xml` の `com.google.android.geo.API_KEY` に注入します。
+- **iOS**: dart-define は Xcode ビルドからは参照できないため、アプリ起動時に Dart 側
+  （`kaido_ui` の `configureGoogleMapsApiKey`）が `GOOGLE_API_KEY_IOS` を MethodChannel で
+  `AppDelegate` に渡し、`GMSServices.provideAPIKey` を呼び出します。
 
 ## 注意事項
 

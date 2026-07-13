@@ -1,6 +1,7 @@
 /// Shared UI (theme, router, app shell) for the Kaido mobile apps.
 library;
 
+export 'google_maps_bootstrap.dart';
 export 'kaido_app.dart';
 export 'kaido_config.dart';
 export 'pages/contact_map_page.dart';

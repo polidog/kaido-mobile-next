@@ -886,7 +886,8 @@ scripts:
         <tbody>
           <tr><td><code>API_BASE_URL</code></td><td>kaido-web-next API のベース URL</td><td><code>https://kaido.example.com</code></td></tr>
           <tr><td><code>API_TOKEN</code></td><td>API 認証用 Bearer トークン</td><td><code>sk-xxxxx</code></td></tr>
-          <tr><td><code>GOOGLE_MAPS_API_KEY</code></td><td>Google Maps API キー</td><td><code>AIzaSy...</code></td></tr>
+          <tr><td><code>GOOGLE_API_KEY_IOS</code></td><td>iOS 用 Google Maps API キー</td><td><code>AIzaSy...</code></td></tr>
+          <tr><td><code>GOOGLE_API_KEY_ANDROID</code></td><td>Android 用 Google Maps API キー</td><td><code>AIzaSy...</code></td></tr>
           <tr><td><code>CONTACT_EMAIL</code></td><td>問い合わせ送信先メールアドレス</td><td><code>info@kaido.jp</code></td></tr>
         </tbody>
       </table>
@@ -899,7 +900,8 @@ flutter run --dart-define-from-file=env/development.json
 {
   "API_BASE_URL": "https://dev.kaido.example.com",
   "API_TOKEN": "dev-token",
-  "GOOGLE_MAPS_API_KEY": "AIzaSy...",
+  "GOOGLE_API_KEY_IOS": "AIzaSy...",
+  "GOOGLE_API_KEY_ANDROID": "AIzaSy...",
   "CONTACT_EMAIL": "dev@kaido.jp"
 }</code></pre>
 

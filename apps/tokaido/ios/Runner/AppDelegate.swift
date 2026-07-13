@@ -4,18 +4,34 @@ import UIKit
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
-  override func application(
-    _ application: UIApplication,
-    didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
-  ) -> Bool {
-    if let apiKey = Bundle.main.object(forInfoDictionaryKey: "GMSApiKey") as? String,
-       !apiKey.isEmpty {
-      GMSServices.provideAPIKey(apiKey)
-    }
-    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
-  }
-
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+
+    // Google Maps の API キーは Dart 側から dart-define（GOOGLE_API_KEY_IOS）の値を
+    // MethodChannel 経由で受け取る（configureGoogleMapsApiKey / kaido_ui）。
+    guard let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "KaidoGoogleMaps") else {
+      return
+    }
+    let channel = FlutterMethodChannel(
+      name: "kaido/google_maps",
+      binaryMessenger: registrar.messenger()
+    )
+    channel.setMethodCallHandler { call, result in
+      switch call.method {
+      case "setApiKey":
+        guard let apiKey = call.arguments as? String, !apiKey.isEmpty else {
+          result(FlutterError(
+            code: "invalid_argument",
+            message: "API key must be a non-empty String",
+            details: nil
+          ))
+          return
+        }
+        GMSServices.provideAPIKey(apiKey)
+        result(nil)
+      default:
+        result(FlutterMethodNotImplemented)
+      }
+    }
   }
 }

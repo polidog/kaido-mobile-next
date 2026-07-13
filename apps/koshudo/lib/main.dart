@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:kaido_ui/google_maps_bootstrap.dart';
 import 'package:kaido_ui/kaido_app.dart';
 import 'package:kaido_ui/kaido_config.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await configureGoogleMapsApiKey();
   runApp(
     ProviderScope(
       overrides: [

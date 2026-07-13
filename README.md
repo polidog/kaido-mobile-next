@@ -67,10 +67,15 @@ cp env/production.json.template env/production.json
 |---|---|
 | `API_BASE_URL` | kaido-web-next API のベース URL |
 | `API_TOKEN` | API 認証用 Bearer トークン |
-| `GOOGLE_MAPS_API_KEY` | Google Maps API キー |
+| `GOOGLE_API_KEY_IOS` | iOS 用 Google Maps API キー |
+| `GOOGLE_API_KEY_ANDROID` | Android 用 Google Maps API キー |
 | `CONTACT_EMAIL` | 問い合わせ送信先メールアドレス |
 
 > **注意**: `env/*.json` は `.gitignore` で除外されています。秘密情報を含むため絶対にコミットしないでください。
+
+> Google Maps API キーは `env/*.json` から各プラットフォームに自動で渡ります。
+> Android は Gradle が `GOOGLE_API_KEY_ANDROID` を `AndroidManifest.xml` に注入し、
+> iOS は起動時に `GOOGLE_API_KEY_IOS` を MethodChannel 経由で Maps SDK に渡します。
 
 ### 3. Android 固有の設定
 
@@ -79,9 +84,6 @@ cp env/production.json.template env/production.json
 ```bash
 # 署名設定（リリースビルド用）
 cp apps/tokaido/android/key.properties.template apps/tokaido/android/key.properties
-
-# Google Maps API キー
-cp apps/tokaido/android/maps_api_key.properties.template apps/tokaido/android/maps_api_key.properties
 ```
 
 `key.properties`:
@@ -92,12 +94,6 @@ cp apps/tokaido/android/maps_api_key.properties.template apps/tokaido/android/ma
 | `keyPassword` | キーのパスワード |
 | `keyAlias` | キーエイリアス（デフォルト: `upload`） |
 | `storeFile` | キーストアファイルのパス |
-
-`maps_api_key.properties`:
-
-| キー | 用途 |
-|---|---|
-| `GOOGLE_MAPS_API_KEY` | Android 用 Google Maps API キー |
 
 ### 4. コード生成
 

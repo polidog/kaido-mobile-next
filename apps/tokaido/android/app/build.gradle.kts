@@ -1,3 +1,4 @@
+import java.util.Base64
 import java.util.Properties
 import java.io.FileInputStream
 
@@ -7,13 +8,19 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
-// Maps API Key（プレースホルダー）
-val mapsApiKeyProperties = Properties()
-val mapsApiKeyFile = rootProject.file("maps_api_key.properties")
-if (mapsApiKeyFile.exists()) {
-    mapsApiKeyProperties.load(FileInputStream(mapsApiKeyFile))
+// Google Maps API キー（--dart-define-from-file の GOOGLE_API_KEY_ANDROID から注入）
+// Flutter ツールは dart-define を base64 エンコードのカンマ区切りで Gradle に渡す
+val dartDefines: Map<String, String> = if (project.hasProperty("dart-defines")) {
+    project.property("dart-defines")
+        .toString()
+        .split(",")
+        .map { String(Base64.getDecoder().decode(it), Charsets.UTF_8) }
+        .filter { it.contains("=") }
+        .associate { it.substringBefore("=") to it.substringAfter("=") }
+} else {
+    emptyMap()
 }
-val mapsApiKey: String = mapsApiKeyProperties.getProperty("GOOGLE_MAPS_API_KEY", "REPLACE_ME")
+val mapsApiKey: String = dartDefines["GOOGLE_API_KEY_ANDROID"] ?: "REPLACE_ME"
 
 // Release 署名（key.properties が無ければ debug 署名にフォールバック）
 val keystoreProperties = Properties()
@@ -42,7 +49,7 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
-        manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = mapsApiKey
+        manifestPlaceholders["GOOGLE_API_KEY_ANDROID"] = mapsApiKey
     }
 
     signingConfigs {
