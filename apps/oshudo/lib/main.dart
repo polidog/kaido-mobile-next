@@ -14,7 +14,8 @@ Future<void> main() async {
           const KaidoConfig(
             appName: '奥州道中十次',
             apiContext: 'oshudo',
-            themeColor: Color(0xFFECB404),
+            themeColor: Color(0xFF5C75A8), // 奥州街道の青
+
             assetPrefix: 'assets',
             markerHues: {
               '見付': 30, // オレンジ

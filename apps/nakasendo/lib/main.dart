@@ -14,7 +14,8 @@ Future<void> main() async {
           const KaidoConfig(
             appName: '中山道六十九次',
             apiContext: 'nakasendo',
-            themeColor: Color(0xFFECB404),
+            themeColor: Color(0xFF5C8D89), // 中山道の深緑
+
             assetPrefix: 'assets',
             markerHues: {
               '見付': 30, // オレンジ

@@ -14,7 +14,8 @@ Future<void> main() async {
           const KaidoConfig(
             appName: '東海道五十三次',
             apiContext: 'tokaido',
-            themeColor: Color(0xFFECB404),
+            themeColor: Color(0xFFFF8585), // 東海道の赤
+
             assetPrefix: 'assets',
             markerHues: {
               '見付': 30, // 宿場の出入り口（オレンジ）

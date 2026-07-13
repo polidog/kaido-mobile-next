@@ -11,6 +11,8 @@ class KaidoTheme {
       useMaterial3: true,
       colorScheme: colorScheme,
       fontFamily: fontFamily,
+      // 旧アプリと同じ薄いブルーグレーの背景（全アプリ共通）
+      scaffoldBackgroundColor: const Color(0xFFF5F7FA),
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.white,
         foregroundColor: Colors.black87,

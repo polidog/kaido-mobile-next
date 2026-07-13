@@ -15,7 +15,7 @@ class LoadingIndicator extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final config = ref.watch(kaidoConfigProvider);
     return ColoredBox(
-      color: config.themeColor,
+      color: config.splashColor,
       child: Stack(
         children: [
           Center(

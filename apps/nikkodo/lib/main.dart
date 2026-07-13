@@ -14,7 +14,8 @@ Future<void> main() async {
           const KaidoConfig(
             appName: '日光道中二十一次',
             apiContext: 'nikkodo',
-            themeColor: Color(0xFFECB404),
+            themeColor: Color(0xFFE6AA3C), // 日光街道の黄金
+
             assetPrefix: 'assets',
             markerHues: {
               '見付': 30, // オレンジ

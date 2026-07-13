@@ -13,6 +13,8 @@ abstract class KaidoConfig with _$KaidoConfig {
     required Color themeColor,
     required String assetPrefix,
     String? fontFamily,
+    /// スプラッシュ・ローディング画面の背景色（全アプリ共通）。
+    @Default(Color(0xFFECB404)) Color splashColor,
     /// カテゴリ名（例: '宿場'）→ マーカー色相（hue）のマップ。
     @Default(<String, double>{}) Map<String, double> markerHues,
   }) = _KaidoConfig;

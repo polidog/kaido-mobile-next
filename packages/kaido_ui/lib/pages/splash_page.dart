@@ -35,7 +35,7 @@ class _SplashPageState extends ConsumerState<SplashPage> {
   Widget build(BuildContext context) {
     final config = ref.watch(kaidoConfigProvider);
     return Scaffold(
-      backgroundColor: config.themeColor,
+      backgroundColor: config.splashColor,
       body: Center(
         child: Image.asset(
           'assets/splash/title.png',
