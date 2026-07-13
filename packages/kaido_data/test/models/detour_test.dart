@@ -6,10 +6,11 @@ void main() {
     test('fromJson/toJson round trip', () {
       const detour = Detour(
         id: 1,
-        title: '寄り道スポット',
-        lat: 35.6835,
-        lng: 139.7742,
-        description: '立ち寄りポイント',
+        name: '寄り道ルート',
+        routes: [
+          DetourRoutePoint(lat: 35.6835, lng: 139.7742, number: 1),
+          DetourRoutePoint(lat: 35.6840, lng: 139.7750, number: 2),
+        ],
       );
 
       final json = detour.toJson();
@@ -18,18 +19,26 @@ void main() {
       expect(decoded, detour);
     });
 
-    test('fromJson handles null description', () {
+    test('fromJson defaults routes to empty list', () {
+      final json = {'id': 2, 'name': '寄り道2'};
+
+      final detour = Detour.fromJson(json);
+
+      expect(detour.routes, isEmpty);
+    });
+
+    test('fromJson handles null route point number', () {
       final json = {
-        'id': 2,
-        'title': '寄り道2',
-        'lat': 35.6,
-        'lng': 139.74,
-        'description': null,
+        'id': 3,
+        'name': '寄り道3',
+        'routes': [
+          {'lat': 35.6, 'lng': 139.74, 'number': null},
+        ],
       };
 
       final detour = Detour.fromJson(json);
 
-      expect(detour.description, isNull);
+      expect(detour.routes.single.number, isNull);
     });
   });
 }

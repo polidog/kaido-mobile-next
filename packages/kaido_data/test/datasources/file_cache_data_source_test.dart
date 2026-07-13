@@ -75,7 +75,16 @@ void main() {
 
   group('FileCacheDataSource detours', () {
     test('cacheDetours then readDetours round trips', () async {
-      const detours = [Detour(id: 1, title: '寄り道', lat: 1, lng: 2)];
+      const detours = [
+        Detour(
+          id: 1,
+          name: '寄り道',
+          routes: [
+            DetourRoutePoint(lat: 1, lng: 2, number: 1),
+            DetourRoutePoint(lat: 3, lng: 4, number: 2),
+          ],
+        ),
+      ];
 
       await dataSource.cacheDetours('tokaido', detours);
       final result = await dataSource.readDetours('tokaido');

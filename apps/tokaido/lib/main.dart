@@ -16,6 +16,13 @@ Future<void> main() async {
             apiContext: 'tokaido',
             themeColor: Color(0xFFECB404),
             assetPrefix: 'assets',
+            markerHues: {
+              '見付': 30, // 宿場の出入り口（オレンジ）
+              '宿場': 0, // 宿場（赤）
+              '一里塚': 120, // 一里塚（緑）
+              '名所': 210, // 名所（青）
+              '浮世絵ポイント': 330, // 浮世絵ポイント（ピンク）
+            },
           ),
         ),
       ],

@@ -5,9 +5,12 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:kaido_ui/pages/contact_map_page.dart';
 import 'package:kaido_ui/pages/contact_page.dart';
 import 'package:kaido_ui/pages/copyright_page.dart';
-import 'package:kaido_ui/pages/html_page.dart';
+import 'package:kaido_ui/pages/data_update_page.dart';
+import 'package:kaido_ui/pages/gokaido_page.dart';
+import 'package:kaido_ui/pages/help_page.dart';
 import 'package:kaido_ui/pages/image_page.dart';
 import 'package:kaido_ui/pages/info_page.dart';
+import 'package:kaido_ui/pages/introduction_page.dart';
 import 'package:kaido_ui/pages/map_page.dart';
 import 'package:kaido_ui/pages/settings_page.dart';
 import 'package:kaido_ui/pages/splash_page.dart';
@@ -41,6 +44,12 @@ GoRouter createKaidoRouter({
       GoRoute(
         path: KaidoRoutePaths.settings,
         builder: (context, state) => const SettingsPage(),
+        routes: [
+          GoRoute(
+            path: KaidoRoutePaths.dataUpdate,
+            builder: (context, state) => const DataUpdatePage(),
+          ),
+        ],
       ),
       GoRoute(
         path: KaidoRoutePaths.contact,
@@ -57,10 +66,16 @@ GoRouter createKaidoRouter({
         ],
       ),
       GoRoute(
-        path: KaidoRoutePaths.html,
-        builder: (context, state) => HtmlPage(
-          page: state.pathParameters['page']!,
-        ),
+        path: KaidoRoutePaths.intro,
+        builder: (context, state) => const IntroductionPage(),
+      ),
+      GoRoute(
+        path: KaidoRoutePaths.help,
+        builder: (context, state) => const HelpPage(),
+      ),
+      GoRoute(
+        path: KaidoRoutePaths.gokaido,
+        builder: (context, state) => const GokaidoPage(),
       ),
       GoRoute(
         path: KaidoRoutePaths.copyright,

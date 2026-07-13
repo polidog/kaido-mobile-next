@@ -63,9 +63,11 @@ void main() {
           onRequest: (_) => FakeHttpClientAdapter.jsonResponse([
             {
               'id': 1,
-              'title': '寄り道スポット',
-              'lat': 35.1,
-              'lng': 139.1,
+              'name': '寄り道ルート',
+              'routes': [
+                {'lat': 35.1, 'lng': 139.1, 'number': 1},
+                {'lat': 35.2, 'lng': 139.2, 'number': 2},
+              ],
             },
           ]),
         );
@@ -76,7 +78,8 @@ void main() {
       expect(result, isA<ApiSuccess<List<DetourDto>>>());
       final detours = (result as ApiSuccess<List<DetourDto>>).data;
       expect(detours, hasLength(1));
-      expect(detours.first.title, '寄り道スポット');
+      expect(detours.first.name, '寄り道ルート');
+      expect(detours.first.routes, hasLength(2));
     });
 
     test('returns ApiFailure on server error', () async {

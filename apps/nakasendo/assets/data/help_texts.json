@@ -1,0 +1,132 @@
+{
+  "main_screen": {
+    "title": "メイン画面",
+    "sections": {
+      "route_display": {
+        "title": "ルート表示",
+        "items": [
+          {
+            "type": "old_road",
+            "color": "#5C8D89",
+            "title": "旧道"
+          },
+          {
+            "type": "detour",
+            "color": "#32CD4C",
+            "title": "迂回路"
+          }
+        ]
+      },
+      "map_icons": {
+        "title": "マップアイコン",
+        "items": [
+          {
+            "type": "entrance",
+            "icon": "marker_orange.png",
+            "title": "宿場の出入り口"
+          },
+          {
+            "type": "honjin",
+            "icon": "marker_green.png",
+            "title": "宿場（本陣）"
+          },
+          {
+            "type": "ichirizuka",
+            "icon": "marker_azure.png",
+            "title": "一里塚"
+          },
+          {
+            "type": "spot",
+            "icon": "marker_red.png",
+            "title": "名所 他"
+          },
+          {
+            "type": "ukiyoe",
+            "icon": "marker_rose.png",
+            "title": "浮世絵ポイント"
+          }
+        ]
+      },
+      "operations": {
+        "title": "操作方法",
+        "items": [
+          {
+            "type": "point",
+            "title": "ポイントアイコン",
+            "description": "マップアイコンをタップすると説明画面が表示されます。"
+          },
+          {
+            "type": "ukiyoe",
+            "title": "浮世絵ポイント",
+            "description": "マップアイコンの浮世絵ポイントをタップして説明画面に表示されている浮世絵画像をタップすると全画面で表示されます。さらに拡大・縮小することも可能です"
+          }
+        ]
+      }
+    }
+  },
+  "toolbar": {
+    "title": "下部ツールバー",
+    "items": [
+      {
+        "icon": "navigation",
+        "description": "GPSのON/OFF"
+      },
+      {
+        "icon": "place",
+        "description": "ポイント\n（アイコンの全ON/OFF）"
+      },
+      {
+        "icon": "settings",
+        "description": "設定\n（はじめに・ヘルプ・お問い合わせ・五街道・著作権情報）"
+      }
+    ]
+  },
+  "data_update": {
+    "title": "データアップデート",
+    "info": {
+      "title": "アプリの地図データや観光スポット情報は定期的に更新されています。",
+      "description": "最新の情報を反映するために、「設定」→「データアップデート」から更新を行ってください。\n更新には通信環境が必要です。Wi-Fi環境での更新をおすすめします。"
+    },
+    "warning": "注意：データアップデート中はアプリを閉じないでください。更新が中断される可能性があります。"
+  },
+  "inquiry": {
+    "title": "お問い合わせ",
+    "main_text": "アプリに関するご質問やご意見、不具合の報告などは「設定」→「お問い合わせ」からお送りください。",
+    "help_text": "お問い合わせの際は、以下の情報をできるだけ詳しくお知らせいただくとスムーズに対応できます：",
+    "required_info": [
+      "お使いの端末の機種名",
+      "OSのバージョン",
+      "アプリのバージョン",
+      "問題が発生した状況や操作手順"
+    ],
+    "screenshot_note": {
+      "icon": "photo_camera",
+      "text": "スクリーンショットなどの画像があると、より状況を把握しやすくなります。"
+    }
+  },
+  "tips": {
+    "title": "上手に使うコツ",
+    "items": [
+      {
+        "icon": "battery_saver",
+        "title": "バッテリーの節約",
+        "description": "アプリを使用しない時はGPSをOFFにしましょう。"
+      },
+      {
+        "icon": "notifications",
+        "title": "通知の設定",
+        "description": "設定画面から通知設定を調整することで、必要な通知だけを受け取ることができます。"
+      },
+      {
+        "icon": "update",
+        "title": "定期的な更新",
+        "description": "定期的にデータアップデートを行うことで、最新の情報を反映できます。"
+      },
+      {
+        "icon": "brightness_6",
+        "title": "表示スタイルの変更",
+        "description": "地図の表示スタイルは好みに合わせて変更できます。明るい場所では標準スタイル、暗い場所ではダークスタイルがおすすめです。"
+      }
+    ]
+  }
+}

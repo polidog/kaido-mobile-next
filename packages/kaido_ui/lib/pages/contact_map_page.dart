@@ -6,7 +6,14 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 /// Station).
 const LatLng _fallbackLocation = LatLng(35.6812, 139.7671);
 
+/// Size of the center pin icon.
+const double _pinSize = 48;
+
 /// Contact location picker screen (`/contact/map`).
+///
+/// A pin is fixed at the center of the screen; the user pans the map to
+/// place the pin on the desired location and confirms with the check
+/// button.
 class ContactMapPage extends StatefulWidget {
   /// Creates a [ContactMapPage].
   const ContactMapPage({this.initialLocation, super.key});
@@ -19,41 +26,53 @@ class ContactMapPage extends StatefulWidget {
 }
 
 class _ContactMapPageState extends State<ContactMapPage> {
-  LatLng? _selectedLatLng;
+  late LatLng _center;
 
   @override
   void initState() {
     super.initState();
-    _selectedLatLng = widget.initialLocation;
+    _center = widget.initialLocation ?? _fallbackLocation;
   }
 
-  void _handleTap(LatLng latLng) {
-    setState(() => _selectedLatLng = latLng);
+  void _handleCameraMove(CameraPosition position) {
+    _center = position.target;
   }
 
   @override
   Widget build(BuildContext context) {
-    final initialTarget = widget.initialLocation ?? _fallbackLocation;
     return Scaffold(
       appBar: AppBar(title: const Text('位置選択')),
-      body: GoogleMap(
-        initialCameraPosition: CameraPosition(
-          target: initialTarget,
-          zoom: 14,
-        ),
-        onTap: _handleTap,
-        markers: {
-          if (_selectedLatLng != null)
-            Marker(
-              markerId: const MarkerId('selected'),
-              position: _selectedLatLng!,
+      body: Stack(
+        children: [
+          GoogleMap(
+            initialCameraPosition: CameraPosition(target: _center, zoom: 14),
+            onCameraMove: _handleCameraMove,
+          ),
+          // Center pin: translated up by half its height so the pin tip
+          // points at the exact center of the map.
+          const IgnorePointer(
+            child: Center(
+              child: Padding(
+                padding: EdgeInsets.only(bottom: _pinSize),
+                child: Icon(
+                  Icons.location_on,
+                  size: _pinSize,
+                  color: Colors.red,
+                  shadows: [
+                    Shadow(
+                      color: Colors.black38,
+                      offset: Offset(0, 2),
+                      blurRadius: 4,
+                    ),
+                  ],
+                ),
+              ),
             ),
-        },
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _selectedLatLng == null
-            ? null
-            : () => context.pop(_selectedLatLng),
+        onPressed: () => context.pop(_center),
         child: const Icon(Icons.check),
       ),
     );

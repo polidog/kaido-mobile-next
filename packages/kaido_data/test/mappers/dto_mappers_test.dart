@@ -81,25 +81,27 @@ void main() {
     test('toDetour converts fields 1:1', () {
       const dto = DetourDto(
         id: 1,
-        title: '寄り道',
-        lat: 35.6,
-        lng: 139.7,
-        description: '説明',
+        name: '寄り道',
+        routes: [
+          DetourRoutePointDto(lat: 35.6, lng: 139.7, number: 1),
+          DetourRoutePointDto(lat: 35.7, lng: 139.8, number: 2),
+        ],
       );
 
       final detour = dto.toDetour();
 
       expect(detour.id, dto.id);
-      expect(detour.title, dto.title);
-      expect(detour.lat, dto.lat);
-      expect(detour.lng, dto.lng);
-      expect(detour.description, dto.description);
+      expect(detour.name, dto.name);
+      expect(detour.routes, hasLength(2));
+      expect(detour.routes[0].lat, dto.routes[0].lat);
+      expect(detour.routes[0].lng, dto.routes[0].lng);
+      expect(detour.routes[0].number, dto.routes[0].number);
     });
 
     test('toDetours converts a list', () {
       const dtos = [
-        DetourDto(id: 1, title: 'A', lat: 1, lng: 2),
-        DetourDto(id: 2, title: 'B', lat: 3, lng: 4),
+        DetourDto(id: 1, name: 'A'),
+        DetourDto(id: 2, name: 'B'),
       ];
 
       expect(dtos.toDetours(), hasLength(2));

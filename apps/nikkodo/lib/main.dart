@@ -16,6 +16,13 @@ Future<void> main() async {
             apiContext: 'nikkodo',
             themeColor: Color(0xFFECB404),
             assetPrefix: 'assets',
+            markerHues: {
+              '見付': 30, // オレンジ
+              '宿場': 60, // 黄色
+              '一里塚': 120, // 緑
+              '名所': 210, // 青
+              '浮世絵ポイント': 330, // ピンク
+            },
           ),
         ),
       ],

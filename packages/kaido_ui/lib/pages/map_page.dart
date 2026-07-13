@@ -14,23 +14,17 @@ const LatLng _fallbackTarget = LatLng(35.6812, 139.7671);
 /// Fallback camera zoom level, paired with [_fallbackTarget].
 const double _fallbackZoom = 14;
 
-/// Returns the asset path for the pin image corresponding to [category].
-String _pinAssetForCategory(String category) {
-  switch (category) {
-    case '宿場':
-      return 'assets/pin/pin_1.png';
-    case '一里塚':
-      return 'assets/pin/pin_2.png';
-    case '名所':
-      return 'assets/pin/pin_3.png';
-    case '浮世絵ポイント':
-      return 'assets/pin/pin_4.png';
-    case '見付':
-      return 'assets/pin/pin_5.png';
-    default:
-      return 'assets/pin/pin_1.png';
-  }
-}
+/// Polyline color for the main route (本道).
+const Color _routeColor = Color(0xFFC88080);
+
+/// Polyline width for the main route (本道).
+const int _routeWidth = 5;
+
+/// Polyline color for detour routes (寄り道).
+const Color _detourColor = Colors.green;
+
+/// Polyline width for detour routes (寄り道).
+const int _detourWidth = 3;
 
 bool _isWithinBounds(LatLngBounds bounds, LatLng point) {
   return point.latitude >= bounds.southwest.latitude &&
@@ -62,30 +56,6 @@ class MapPage extends ConsumerStatefulWidget {
 class _MapPageState extends ConsumerState<MapPage> {
   GoogleMapController? _controller;
   CameraPosition? _lastCameraPosition;
-  Map<String, BitmapDescriptor> _markerIcons = {};
-
-  @override
-  void initState() {
-    super.initState();
-    unawaited(_loadMarkerIcons());
-  }
-
-  Future<void> _loadMarkerIcons() async {
-    const categories = ['宿場', '一里塚', '名所', '浮世絵ポイント', '見付'];
-    final icons = <String, BitmapDescriptor>{};
-    for (final category in categories) {
-      final path = _pinAssetForCategory(category);
-      icons[category] = await BitmapDescriptor.fromAssetImage(
-        const ImageConfiguration(size: Size(48, 48)),
-        path,
-      );
-    }
-    if (mounted) {
-      setState(() {
-        _markerIcons = icons;
-      });
-    }
-  }
 
   Future<void> _handleCameraIdle() async {
     final controller = _controller;
@@ -107,6 +77,7 @@ class _MapPageState extends ConsumerState<MapPage> {
     final config = ref.watch(kaidoConfigProvider);
     final pointsAsync = ref.watch(pointsProvider);
     final routesAsync = ref.watch(routesProvider);
+    final detoursAsync = ref.watch(detoursProvider);
     final mapState = ref.watch(mapControllerProvider);
     final initialCameraAsync = ref.watch(initialCameraPositionProvider);
     final markersVisible = ref.watch(markerVisibilityProvider);
@@ -152,6 +123,7 @@ class _MapPageState extends ConsumerState<MapPage> {
           config: config,
           pointsAsync: pointsAsync,
           routesAsync: routesAsync,
+          detoursAsync: detoursAsync,
           mapState: mapState,
           markersVisible: markersVisible,
           initialCameraPosition: const CameraPosition(
@@ -163,6 +135,7 @@ class _MapPageState extends ConsumerState<MapPage> {
           config: config,
           pointsAsync: pointsAsync,
           routesAsync: routesAsync,
+          detoursAsync: detoursAsync,
           mapState: mapState,
           markersVisible: markersVisible,
           initialCameraPosition:
@@ -181,13 +154,17 @@ class _MapPageState extends ConsumerState<MapPage> {
     required KaidoConfig config,
     required AsyncValue<List<Point>> pointsAsync,
     required AsyncValue<List<RoutePoint>> routesAsync,
+    required AsyncValue<List<Detour>> detoursAsync,
     required MapState mapState,
     required bool markersVisible,
     required CameraPosition initialCameraPosition,
   }) {
     final points = pointsAsync.value ?? const <Point>[];
     final routes = routesAsync.value ?? const <RoutePoint>[];
-    final isLoading = pointsAsync.isLoading || routesAsync.isLoading;
+    final detours = detoursAsync.value ?? const <Detour>[];
+    final isLoading = pointsAsync.isLoading ||
+        routesAsync.isLoading ||
+        detoursAsync.isLoading;
 
     final markers = markersVisible
         ? filterVisiblePoints(points, mapState.visibleRegion)
@@ -195,8 +172,13 @@ class _MapPageState extends ConsumerState<MapPage> {
                 (point) => Marker(
                   markerId: MarkerId('point_${point.id}'),
                   position: LatLng(point.lat, point.lng),
-                  icon: _markerIcons[point.category] ??
-                      BitmapDescriptor.defaultMarker,
+                  // カテゴリごとの色相付き標準マーカー（旧アプリと同じ方式）
+                  icon: switch (config.markerHues[point.category]) {
+                    final hue? => BitmapDescriptor.defaultMarkerWithHue(hue),
+                    null => BitmapDescriptor.defaultMarkerWithHue(
+                      BitmapDescriptor.hueViolet,
+                    ),
+                  },
                   infoWindow: InfoWindow(
                     title: '${point.title} →',
                     onTap: () => context.push('/info/${point.id}'),
@@ -211,7 +193,10 @@ class _MapPageState extends ConsumerState<MapPage> {
         GoogleMap(
           initialCameraPosition: initialCameraPosition,
           markers: markers,
-          polylines: routes.toPolylines(color: config.themeColor),
+          polylines: {
+            ...routes.toPolylines(color: _routeColor, width: _routeWidth),
+            ...detours.toPolylines(color: _detourColor, width: _detourWidth),
+          },
           onMapCreated: (controller) {
             _controller = controller;
             _lastCameraPosition ??= initialCameraPosition;

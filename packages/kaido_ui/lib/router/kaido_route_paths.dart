@@ -15,14 +15,23 @@ class KaidoRoutePaths {
   /// Settings screen.
   static const String settings = '/settings';
 
+  /// Data update screen, nested under [settings].
+  static const String dataUpdate = 'update';
+
   /// Contact form screen.
   static const String contact = '/contact';
 
   /// Contact location picker screen, nested under [contact].
   static const String contactMap = 'map';
 
-  /// Static HTML content screen. Expects a `page` path parameter.
-  static const String html = '/html/:page';
+  /// Introduction screen.
+  static const String intro = '/intro';
+
+  /// Help screen.
+  static const String help = '/help';
+
+  /// Gokaido (five highways) guide screen.
+  static const String gokaido = '/gokaido';
 
   /// Copyright / license screen.
   static const String copyright = '/copyright';

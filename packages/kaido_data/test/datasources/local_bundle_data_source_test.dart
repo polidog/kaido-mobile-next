@@ -37,14 +37,16 @@ void main() {
     test('loadDetours parses bundled JSON into Detours', () async {
       final loader = FakeAssetLoader({
         'assets/json/detours.json':
-            '[{"id": 1, "title": "寄り道", "lat": 1.0, "lng": 2.0}]',
+            '[{"id": 1, "name": "寄り道", "routes": ['
+            '{"lat": 1.0, "lng": 2.0, "number": 1}]}]',
       });
       final source = LocalBundleDataSource(loader);
 
       final detours = await source.loadDetours('assets/json/detours.json');
 
       expect(detours, hasLength(1));
-      expect(detours.first.title, '寄り道');
+      expect(detours.first.name, '寄り道');
+      expect(detours.first.routes, hasLength(1));
     });
   });
 }

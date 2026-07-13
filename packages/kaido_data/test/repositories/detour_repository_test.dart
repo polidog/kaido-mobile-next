@@ -15,9 +15,36 @@ void main() {
   late Directory tempDir;
   late FileCacheDataSource fileCache;
 
-  const bundledDetours = [Detour(id: 99, title: 'バンドル', lat: 0, lng: 0)];
-  const remoteDetours = [Detour(id: 1, title: 'API取得', lat: 1, lng: 2)];
-  const cachedDetours = [Detour(id: 2, title: 'キャッシュ', lat: 3, lng: 4)];
+  const bundledDetours = [
+    Detour(
+      id: 99,
+      name: 'バンドル',
+      routes: [
+        DetourRoutePoint(lat: 0, lng: 0, number: 1),
+        DetourRoutePoint(lat: 0.1, lng: 0.1, number: 2),
+      ],
+    ),
+  ];
+  const remoteDetours = [
+    Detour(
+      id: 1,
+      name: 'API取得',
+      routes: [
+        DetourRoutePoint(lat: 1, lng: 2, number: 1),
+        DetourRoutePoint(lat: 1.1, lng: 2.1, number: 2),
+      ],
+    ),
+  ];
+  const cachedDetours = [
+    Detour(
+      id: 2,
+      name: 'キャッシュ',
+      routes: [
+        DetourRoutePoint(lat: 3, lng: 4, number: 1),
+        DetourRoutePoint(lat: 3.1, lng: 4.1, number: 2),
+      ],
+    ),
+  ];
 
   setUp(() async {
     tempDir = await Directory.systemTemp.createTemp('detour_repo_test');
@@ -33,7 +60,9 @@ void main() {
   LocalBundleDataSource bundleDataSource() {
     final AssetLoader loader = FakeAssetLoader({
       'assets/json/detours.json':
-          '[{"id": 99, "title": "バンドル", "lat": 0.0, "lng": 0.0}]',
+          '[{"id": 99, "name": "バンドル", "routes": ['
+          '{"lat": 0.0, "lng": 0.0, "number": 1}, '
+          '{"lat": 0.1, "lng": 0.1, "number": 2}]}]',
     });
     return LocalBundleDataSource(loader);
   }

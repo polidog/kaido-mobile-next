@@ -38,15 +38,21 @@ extension RoutePointDtoListMapper on List<RoutePointDto> {
       map((dto) => dto.toRoutePoint()).toList();
 }
 
+/// Converts [DetourRoutePointDto] instances into domain [DetourRoutePoint]
+/// models.
+extension DetourRoutePointDtoMapper on DetourRoutePointDto {
+  /// Converts this DTO into a domain [DetourRoutePoint].
+  DetourRoutePoint toDetourRoutePoint() =>
+      DetourRoutePoint(lat: lat, lng: lng, number: number);
+}
+
 /// Converts [DetourDto] instances into domain [Detour] models.
 extension DetourDtoMapper on DetourDto {
   /// Converts this DTO into a domain [Detour].
   Detour toDetour() => Detour(
     id: id,
-    title: title,
-    lat: lat,
-    lng: lng,
-    description: description,
+    name: name,
+    routes: routes.map((route) => route.toDetourRoutePoint()).toList(),
   );
 }
 

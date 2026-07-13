@@ -28,6 +28,7 @@ flutter:
     - assets/json/
     - assets/images/
     - assets/pin/
-    - assets/html/
+    - assets/data/
+    - assets/map/
     - assets/copyright/
     - assets/splash/

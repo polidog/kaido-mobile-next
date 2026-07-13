@@ -1,19 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:kaido_data/kaido_data.dart';
 
 /// Settings screen (`/settings`).
 class SettingsPage extends ConsumerWidget {
   /// Creates a [SettingsPage].
   const SettingsPage({super.key});
 
-  Future<void> _handleRefresh(BuildContext context, WidgetRef ref) async {
-    final messenger = ScaffoldMessenger.of(context);
-    await ref.read(pointsProvider.notifier).refresh();
-    messenger.showSnackBar(
-      const SnackBar(content: Text('データを更新しました')),
+  Future<void> _handleDataUpdate(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('データを更新しますか？'),
+        content: const Text('通信状況の良い場所で更新を行ってください。'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('キャンセル'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('更新する'),
+          ),
+        ],
+      ),
     );
+    if ((confirmed ?? false) && context.mounted) {
+      await context.push('/settings/update');
+    }
   }
 
   @override
@@ -26,13 +40,13 @@ class SettingsPage extends ConsumerWidget {
             title: const Text('はじめに'),
             subtitle: const Text('アプリケーションの紹介'),
             trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-            onTap: () => context.push('/html/intro'),
+            onTap: () => context.push('/intro'),
           ),
           ListTile(
             title: const Text('ヘルプ'),
             subtitle: const Text('操作方法'),
             trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-            onTap: () => context.push('/html/help'),
+            onTap: () => context.push('/help'),
           ),
           ListTile(
             title: const Text('お問い合わせ'),
@@ -44,12 +58,13 @@ class SettingsPage extends ConsumerWidget {
             title: const Text('五街道'),
             subtitle: const Text('「五街道を歩く」シリーズの紹介'),
             trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-            onTap: () => context.push('/html/gokaido'),
+            onTap: () => context.push('/gokaido'),
           ),
           ListTile(
             title: const Text('データアップデート'),
+            subtitle: const Text('アプリケーションデータの更新'),
             trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-            onTap: () => _handleRefresh(context, ref),
+            onTap: () => _handleDataUpdate(context),
           ),
           ListTile(
             title: const Text('著作権情報'),

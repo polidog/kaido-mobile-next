@@ -22,6 +22,11 @@ class _FakeRoutes extends Routes {
   Future<List<RoutePoint>> build() async => const [];
 }
 
+class _FakeDetours extends Detours {
+  @override
+  Future<List<Detour>> build() async => const [];
+}
+
 void main() {
   testWidgets('SplashPage navigates to MapPage after 3 seconds', (
     tester,
@@ -33,6 +38,7 @@ void main() {
           kaidoConfigProvider.overrideWithValue(_testConfig),
           pointsProvider.overrideWith(_FakePoints.new),
           routesProvider.overrideWith(_FakeRoutes.new),
+          detoursProvider.overrideWith(_FakeDetours.new),
           initialCameraPositionProvider.overrideWith((ref) async => null),
         ],
         child: MaterialApp.router(routerConfig: router),

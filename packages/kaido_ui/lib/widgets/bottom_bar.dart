@@ -41,6 +41,9 @@ class BottomBar extends ConsumerWidget {
     const defaultColor = Colors.grey;
 
     return BottomAppBar(
+      // M3 デフォルト（高さ80 + 縦パディング12）は iOS で高くなりすぎるため縮小する
+      height: 56,
+      padding: EdgeInsets.zero,
       child: Row(
         children: [
           // GPS button

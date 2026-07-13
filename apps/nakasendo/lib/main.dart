@@ -16,6 +16,13 @@ Future<void> main() async {
             apiContext: 'nakasendo',
             themeColor: Color(0xFFECB404),
             assetPrefix: 'assets',
+            markerHues: {
+              '見付': 30, // オレンジ
+              '宿場': 120, // 緑
+              '一里塚': 210, // 青
+              '名所': 0, // 赤
+              '浮世絵ポイント': 330, // ピンク
+            },
           ),
         ),
       ],

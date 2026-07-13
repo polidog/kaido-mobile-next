@@ -5,14 +5,17 @@ import 'package:kaido_data/kaido_data.dart';
 import 'package:kaido_ui/pages/contact_map_page.dart';
 import 'package:kaido_ui/pages/contact_page.dart';
 import 'package:kaido_ui/pages/copyright_page.dart';
-import 'package:kaido_ui/pages/html_page.dart';
+import 'package:kaido_ui/pages/gokaido_page.dart';
+import 'package:kaido_ui/pages/help_page.dart';
 import 'package:kaido_ui/pages/image_page.dart';
 import 'package:kaido_ui/pages/info_page.dart';
+import 'package:kaido_ui/pages/introduction_page.dart';
 import 'package:kaido_ui/pages/map_page.dart';
 import 'package:kaido_ui/pages/settings_page.dart';
 import 'package:kaido_ui/pages/splash_page.dart';
 import 'package:kaido_ui/router/kaido_router.dart';
-import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart';
+
+import '../helpers/fake_assets.dart';
 
 /// Test double that provides a fixed, immediately-available points list so
 /// widget tests don't hit the real repository chain.
@@ -37,40 +40,11 @@ class _FakeRoutes extends Routes {
   Future<List<RoutePoint>> build() async => const [];
 }
 
-class _FakeAssetLoader implements AssetLoader {
+/// Test double that provides a fixed, immediately-available empty detours
+/// list so widget tests don't hit the real repository chain.
+class _FakeDetours extends Detours {
   @override
-  Future<String> loadString(String key) async => '<html><body>fake</body></html>';
-}
-
-class _FakePlatformWebViewController extends PlatformWebViewController {
-  _FakePlatformWebViewController(super.params) : super.implementation();
-
-  @override
-  Future<void> loadHtmlString(String html, {String? baseUrl}) async {}
-
-  @override
-  Future<void> setJavaScriptMode(JavaScriptMode javaScriptMode) async {}
-}
-
-class _FakePlatformWebViewWidget extends PlatformWebViewWidget {
-  _FakePlatformWebViewWidget(super.params) : super.implementation();
-
-  @override
-  Widget build(BuildContext context) => const SizedBox.shrink();
-}
-
-class _FakeWebViewPlatform extends WebViewPlatform {
-  @override
-  PlatformWebViewController createPlatformWebViewController(
-    PlatformWebViewControllerCreationParams params,
-  ) =>
-      _FakePlatformWebViewController(params);
-
-  @override
-  PlatformWebViewWidget createPlatformWebViewWidget(
-    PlatformWebViewWidgetCreationParams params,
-  ) =>
-      _FakePlatformWebViewWidget(params);
+  Future<List<Detour>> build() async => const [];
 }
 
 const _testConfig = KaidoConfig(
@@ -81,16 +55,13 @@ const _testConfig = KaidoConfig(
 );
 
 void main() {
-  setUp(() {
-    WebViewPlatform.instance = _FakeWebViewPlatform();
-  });
-
   final overrides = [
     kaidoConfigProvider.overrideWithValue(_testConfig),
     pointsProvider.overrideWith(_FakePoints.new),
     routesProvider.overrideWith(_FakeRoutes.new),
+    detoursProvider.overrideWith(_FakeDetours.new),
     initialCameraPositionProvider.overrideWith((ref) async => null),
-    assetLoaderProvider.overrideWithValue(_FakeAssetLoader()),
+    assetLoaderProvider.overrideWithValue(FakeAssetLoader()),
   ];
 
   Future<void> pumpAt(WidgetTester tester, String location) async {
@@ -136,10 +107,19 @@ void main() {
     expect(find.byType(ContactMapPage), findsOneWidget);
   });
 
-  testWidgets('/html/:page resolves to HtmlPage', (tester) async {
-    await pumpAt(tester, '/html/help');
-    final htmlPage = tester.widget<HtmlPage>(find.byType(HtmlPage));
-    expect(htmlPage.page, 'help');
+  testWidgets('/intro resolves to IntroductionPage', (tester) async {
+    await pumpAt(tester, '/intro');
+    expect(find.byType(IntroductionPage), findsOneWidget);
+  });
+
+  testWidgets('/help resolves to HelpPage', (tester) async {
+    await pumpAt(tester, '/help');
+    expect(find.byType(HelpPage), findsOneWidget);
+  });
+
+  testWidgets('/gokaido resolves to GokaidoPage', (tester) async {
+    await pumpAt(tester, '/gokaido');
+    expect(find.byType(GokaidoPage), findsOneWidget);
   });
 
   testWidgets('/copyright resolves to CopyrightPage', (tester) async {

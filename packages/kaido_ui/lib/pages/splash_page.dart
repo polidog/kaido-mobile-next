@@ -37,7 +37,18 @@ class _SplashPageState extends ConsumerState<SplashPage> {
     return Scaffold(
       backgroundColor: config.themeColor,
       body: Center(
-        child: Image.asset('assets/splash/title.png'),
+        child: Image.asset(
+          'assets/splash/title.png',
+          // タイトル画像を持たないアプリではアプリ名テキストで代替する。
+          errorBuilder: (context, error, stackTrace) => Text(
+            config.appName,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
       ),
     );
   }
