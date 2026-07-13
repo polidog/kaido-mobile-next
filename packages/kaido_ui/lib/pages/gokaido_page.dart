@@ -1,6 +1,7 @@
 import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kaido_data/kaido_data.dart';
 import 'package:kaido_ui/widgets/kaido_card.dart';
@@ -333,17 +334,32 @@ class _StoreButton extends StatelessWidget {
   final String url;
 
   /// URLを開く。
-  Future<void> _launchURL() async {
+  ///
+  /// canLaunchUrl は Android 11+ ではマニフェストの queries 宣言がないと
+  /// https でも false を返すため、直接 launchUrl を試みて失敗時に通知する。
+  Future<void> _launchURL(BuildContext context) async {
     final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
+    final messenger = ScaffoldMessenger.of(context);
+    var launched = false;
+    try {
+      launched = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+    } on PlatformException {
+      launched = false;
+    }
+    if (!launched) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('ストアページを開けませんでした')),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return ElevatedButton.icon(
-      onPressed: _launchURL,
+      onPressed: () => _launchURL(context),
       icon: Icon(icon, color: color),
       label: Text(label),
       style: ElevatedButton.styleFrom(
