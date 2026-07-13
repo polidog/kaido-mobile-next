@@ -53,9 +53,15 @@ GoRouter createKaidoRouter({
       ),
       GoRoute(
         path: KaidoRoutePaths.contact,
-        builder: (context, state) => ContactPage(
-          initialSubject: state.extra as String?,
-        ),
+        builder: (context, state) {
+          final args = state.extra;
+          return ContactPage(
+            initialSubject: args is ContactPageArgs
+                ? args.subject
+                : args as String?,
+            initialLocation: args is ContactPageArgs ? args.location : null,
+          );
+        },
         routes: [
           GoRoute(
             path: KaidoRoutePaths.contactMap,

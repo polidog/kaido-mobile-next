@@ -6,13 +6,28 @@ import 'package:kaido_data/kaido_data.dart';
 import 'package:kaido_ui/widgets/contact_form.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+/// Arguments passed to [ContactPage] via the router's `extra`.
+class ContactPageArgs {
+  /// Creates [ContactPageArgs].
+  const ContactPageArgs({this.subject, this.location});
+
+  /// Initial value for the form's subject field.
+  final String? subject;
+
+  /// Initially selected location.
+  final LatLng? location;
+}
+
 /// Contact form screen (`/contact`).
 class ContactPage extends ConsumerStatefulWidget {
   /// Creates a [ContactPage].
-  const ContactPage({this.initialSubject, super.key});
+  const ContactPage({this.initialSubject, this.initialLocation, super.key});
 
   /// Initial value for the form's subject field.
   final String? initialSubject;
+
+  /// Initially selected location.
+  final LatLng? initialLocation;
 
   @override
   ConsumerState<ContactPage> createState() => _ContactPageState();
@@ -20,6 +35,12 @@ class ContactPage extends ConsumerStatefulWidget {
 
 class _ContactPageState extends ConsumerState<ContactPage> {
   LatLng? _selectedLocation;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedLocation = widget.initialLocation;
+  }
 
   Future<void> _handleSelectLocation() async {
     final result = await context.push<LatLng>(

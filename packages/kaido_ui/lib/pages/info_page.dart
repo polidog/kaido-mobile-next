@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:kaido_data/kaido_data.dart';
+import 'package:kaido_ui/pages/contact_page.dart';
 import 'package:kaido_ui/widgets/point_info_card.dart';
 
 /// Point info screen (`/info/:id`).
@@ -45,8 +47,13 @@ class InfoPage extends ConsumerWidget {
             title: Text(point.category),
             actions: [
               TextButton(
-                onPressed: () =>
-                    context.push('/contact', extra: point.title),
+                onPressed: () => context.push(
+                  '/contact',
+                  extra: ContactPageArgs(
+                    subject: point.title,
+                    location: LatLng(point.lat, point.lng),
+                  ),
+                ),
                 child: const Text('問合せ'),
               ),
             ],
