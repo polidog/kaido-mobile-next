@@ -19,7 +19,7 @@ class AuthInterceptor extends Interceptor {
     RequestInterceptorHandler handler,
   ) {
     final token = tokenProvider();
-    options.headers['Authorization'] = 'Bearer $token';
+    options.headers['X-API-Key'] = token;
     handler.next(options);
   }
 }
