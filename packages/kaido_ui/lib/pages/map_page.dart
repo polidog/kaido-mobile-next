@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:kaido_data/kaido_data.dart';
 import 'package:kaido_ui/widgets/bottom_bar.dart';
+import 'package:kaido_ui/widgets/map_point_card.dart';
 
 /// Fallback camera target when no persisted or initial location is
 /// available (Tokyo Station).
@@ -56,6 +57,22 @@ class MapPage extends ConsumerStatefulWidget {
 class _MapPageState extends ConsumerState<MapPage> {
   GoogleMapController? _controller;
   CameraPosition? _lastCameraPosition;
+  Point? _selectedPoint;
+
+  void _selectPoint(Point point) {
+    setState(() => _selectedPoint = point);
+    // カードに隠れないよう、タップしたマーカーを画面中央へ寄せる。
+    unawaited(
+      _controller?.animateCamera(
+        CameraUpdate.newLatLng(LatLng(point.lat, point.lng)),
+      ),
+    );
+  }
+
+  void _clearSelectedPoint() {
+    if (_selectedPoint == null) return;
+    setState(() => _selectedPoint = null);
+  }
 
   Future<void> _handleCameraIdle() async {
     final controller = _controller;
@@ -179,10 +196,7 @@ class _MapPageState extends ConsumerState<MapPage> {
                       BitmapDescriptor.hueViolet,
                     ),
                   },
-                  infoWindow: InfoWindow(
-                    title: '${point.title} →',
-                    onTap: () => context.push('/info/${point.id}'),
-                  ),
+                  onTap: () => _selectPoint(point),
                 ),
               )
               .toSet()
@@ -203,6 +217,7 @@ class _MapPageState extends ConsumerState<MapPage> {
           },
           onCameraMove: (position) => _lastCameraPosition = position,
           onCameraIdle: _handleCameraIdle,
+          onTap: (_) => _clearSelectedPoint(),
           myLocationEnabled: true,
           myLocationButtonEnabled: false,
         ),
@@ -213,6 +228,35 @@ class _MapPageState extends ConsumerState<MapPage> {
             right: 0,
             child: LinearProgressIndicator(),
           ),
+        Positioned(
+          left: 12,
+          right: 12,
+          bottom: 12,
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            transitionBuilder: (child, animation) => FadeTransition(
+              opacity: animation,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 0.2),
+                  end: Offset.zero,
+                ).animate(animation),
+                child: child,
+              ),
+            ),
+            child: switch (_selectedPoint) {
+              null => const SizedBox.shrink(),
+              final point => MapPointCard(
+                key: ValueKey(point.id),
+                point: point,
+                assetPrefix: config.assetPrefix,
+                accentHue: config.markerHues[point.category],
+                onTap: () => context.push('/info/${point.id}'),
+                onClose: _clearSelectedPoint,
+              ),
+            },
+          ),
+        ),
       ],
     );
   }
