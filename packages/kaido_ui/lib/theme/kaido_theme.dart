@@ -11,11 +11,17 @@ class KaidoTheme {
       useMaterial3: true,
       colorScheme: colorScheme,
       fontFamily: fontFamily,
-      // 旧アプリと同じ薄いブルーグレーの背景（全アプリ共通）
-      scaffoldBackgroundColor: const Color(0xFFF5F7FA),
+      // アプリのテーマカラーを薄く敷いた背景色（街道ごとに変わる）
+      scaffoldBackgroundColor: Color.alphaBlend(
+        seedColor.withValues(alpha: 0.08),
+        Colors.white,
+      ),
+      // カード（BOX）は背景ティントに対して白で浮かせる
+      cardTheme: const CardThemeData(color: Colors.white),
+      // ヘッダはアプリのテーマカラー
       appBarTheme: AppBarTheme(
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
+        backgroundColor: seedColor,
+        foregroundColor: Colors.white,
         centerTitle: true,
         elevation: 0,
       ),
