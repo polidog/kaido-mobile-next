@@ -1,7 +1,10 @@
 import 'dart:async';
+import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart' show Geolocator;
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:kaido_data/kaido_data.dart';
@@ -22,6 +25,11 @@ const Duration _cameraSaveDebounce = Duration(seconds: 1);
 /// Minimum compass heading change (degrees) worth animating the camera
 /// for. Smaller jitters from the sensor are ignored.
 const double _headingThreshold = 1;
+
+/// カメラ中心と現在地がこの距離(メートル)未満なら再センタリングしない。
+/// フォローモード中の recenter → onCameraIdle → recenter の無限ループと、
+/// GPSジッターによる無駄なカメラ移動を防ぐ。
+const double _recenterThresholdMeters = 10;
 
 bool _isWithinBounds(LatLngBounds bounds, LatLng point) {
   return point.latitude >= bounds.southwest.latitude &&
@@ -64,6 +72,12 @@ class _MapPageState extends ConsumerState<MapPage> {
   Timer? _cameraSaveTimer;
   double? _lastAppliedHeading;
 
+  // ネイティブのコンパスは iOS ではセーフエリア外に描画され、Android では
+  // 表示されないバグ(flutter/flutter#37588)があるため、自前のコンパス
+  // ボタンを表示する。onCameraMove は高頻度で発火するので、ページ全体の
+  // rebuild を避けるため ValueNotifier でボタンだけを更新する。
+  final ValueNotifier<double> _bearing = ValueNotifier(0);
+
   // BitmapDescriptor は同一性比較のため、build のたびに生成し直すと全
   // マーカーが「変更あり」と diff されてネイティブ側へ毎回再送される。
   // カテゴリごとに一度だけ生成してキャッシュする。
@@ -97,12 +111,69 @@ class _MapPageState extends ConsumerState<MapPage> {
     setState(() => _selectedPoint = null);
   }
 
+  /// コンパスボタンのタップで地図を北向きに戻す。コンパスモード中は
+  /// heading の追従がすぐ回転を戻してしまうため、モードも解除する。
+  Future<void> _resetBearing() async {
+    final controller = _controller;
+    final position = _lastCameraPosition;
+    if (controller == null || position == null) return;
+    if (ref.read(mapControllerProvider).isCompassMode) {
+      ref.read(mapControllerProvider.notifier).toggleCompassMode();
+    }
+    await controller.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(
+          target: position.target,
+          zoom: position.zoom,
+          tilt: position.tilt,
+        ),
+      ),
+    );
+  }
+
+  /// 現在地へカメラを移動する(旧アプリと同じ挙動)。
+  ///
+  /// GPSボタンのタップ時と、フォローモード中に地図を動かしたあとの
+  /// onCameraIdle から呼ばれる。カメラ中心がすでに現在地付近
+  /// ([_recenterThresholdMeters] 未満)の場合は移動しない。
+  Future<void> _moveToCurrentLocation() async {
+    final controller = _controller;
+    if (controller == null) return;
+    try {
+      final position =
+          await ref.read(locationServiceProvider).getCurrentPosition();
+      if (!mounted) return;
+      final target = _lastCameraPosition?.target;
+      if (target != null &&
+          Geolocator.distanceBetween(
+                target.latitude,
+                target.longitude,
+                position.latitude,
+                position.longitude,
+              ) <
+              _recenterThresholdMeters) {
+        return;
+      }
+      await controller.animateCamera(
+        CameraUpdate.newLatLng(LatLng(position.latitude, position.longitude)),
+      );
+    } on Exception {
+      // 位置情報が取得できない場合は移動しない(権限はタップ時に確認済み)。
+    }
+  }
+
   Future<void> _handleCameraIdle() async {
     final controller = _controller;
     if (controller == null) return;
 
     final region = await controller.getVisibleRegion();
     ref.read(mapControllerProvider.notifier).updateVisibleRegion(region);
+
+    // フォローモード中はユーザーが地図を動かしても現在地へ戻す
+    // (旧アプリと同じ挙動)。
+    if (ref.read(mapControllerProvider).isFollowingUser) {
+      unawaited(_moveToCurrentLocation());
+    }
 
     _cameraSaveTimer?.cancel();
     _cameraSaveTimer = Timer(_cameraSaveDebounce, _saveCameraPosition);
@@ -118,6 +189,7 @@ class _MapPageState extends ConsumerState<MapPage> {
 
   @override
   void dispose() {
+    _bearing.dispose();
     final saveTimer = _cameraSaveTimer;
     if (saveTimer != null && saveTimer.isActive) {
       saveTimer.cancel();
@@ -139,6 +211,14 @@ class _MapPageState extends ConsumerState<MapPage> {
     final markersVisible = ref.watch(markerVisibilityProvider);
 
     ref
+      ..listen(mapControllerProvider.select((state) => state.isFollowingUser), (
+        previous,
+        next,
+      ) {
+        // GPSボタンのタップで必ずトグルされるため、変化のたびに現在地へ
+        // カメラを移動する。
+        unawaited(_moveToCurrentLocation());
+      })
       ..listen(currentPositionProvider, (previous, next) {
         final position = next.value;
         final controller = _controller;
@@ -252,12 +332,22 @@ class _MapPageState extends ConsumerState<MapPage> {
           onMapCreated: (controller) {
             _controller = controller;
             _lastCameraPosition ??= initialCameraPosition;
+            _bearing.value = _lastCameraPosition!.bearing;
           },
-          onCameraMove: (position) => _lastCameraPosition = position,
+          onCameraMove: (position) {
+            _lastCameraPosition = position;
+            _bearing.value = position.bearing;
+          },
           onCameraIdle: _handleCameraIdle,
           onTap: (_) => _clearSelectedPoint(),
           myLocationEnabled: true,
           myLocationButtonEnabled: false,
+          compassEnabled: false,
+        ),
+        Positioned(
+          top: MediaQuery.of(context).padding.top + 12,
+          right: 12,
+          child: _CompassButton(bearing: _bearing, onTap: _resetBearing),
         ),
         if (isLoading)
           const Positioned(
@@ -296,6 +386,56 @@ class _MapPageState extends ConsumerState<MapPage> {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// 地図が北向きでないときだけ表示されるコンパスボタン。
+///
+/// タップで北向きに戻る。ネイティブのコンパスの代替(理由は
+/// [_MapPageState._bearing] のコメントを参照)。
+class _CompassButton extends StatelessWidget {
+  const _CompassButton({required this.bearing, required this.onTap});
+
+  final ValueListenable<double> bearing;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<double>(
+      valueListenable: bearing,
+      builder: (context, value, _) {
+        final visible = value != 0;
+        return IgnorePointer(
+          ignoring: !visible,
+          child: AnimatedOpacity(
+            opacity: visible ? 1 : 0,
+            duration: const Duration(milliseconds: 200),
+            child: Material(
+              color: Colors.white,
+              shape: const CircleBorder(),
+              elevation: 2,
+              child: InkWell(
+                customBorder: const CircleBorder(),
+                onTap: onTap,
+                child: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Transform.rotate(
+                    // Icons.explore の針は北東(45°)を向いているため、
+                    // bearing の打ち消しに加えて 45° 分補正する。
+                    angle: (-value - 45) * math.pi / 180,
+                    child: Icon(
+                      Icons.explore,
+                      size: 24,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
