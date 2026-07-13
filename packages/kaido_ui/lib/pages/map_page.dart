@@ -15,17 +15,13 @@ const LatLng _fallbackTarget = LatLng(35.6812, 139.7671);
 /// Fallback camera zoom level, paired with [_fallbackTarget].
 const double _fallbackZoom = 14;
 
-/// Polyline color for the main route (本道).
-const Color _routeColor = Color(0xFFC88080);
+/// Debounce for persisting the camera position, so panning around does
+/// not write to storage on every idle.
+const Duration _cameraSaveDebounce = Duration(seconds: 1);
 
-/// Polyline width for the main route (本道).
-const int _routeWidth = 5;
-
-/// Polyline color for detour routes (寄り道).
-const Color _detourColor = Colors.green;
-
-/// Polyline width for detour routes (寄り道).
-const int _detourWidth = 3;
+/// Minimum compass heading change (degrees) worth animating the camera
+/// for. Smaller jitters from the sensor are ignored.
+const double _headingThreshold = 1;
 
 bool _isWithinBounds(LatLngBounds bounds, LatLng point) {
   return point.latitude >= bounds.southwest.latitude &&
@@ -45,6 +41,13 @@ List<Point> filterVisiblePoints(List<Point> points, LatLngBounds? bounds) {
       .toList();
 }
 
+/// Angular difference between two headings in degrees, accounting for
+/// wrap-around at 360°.
+double _headingDelta(double a, double b) {
+  final diff = (a - b).abs() % 360;
+  return diff > 180 ? 360 - diff : diff;
+}
+
 /// Map screen (`/`).
 class MapPage extends ConsumerStatefulWidget {
   /// Creates a [MapPage].
@@ -58,6 +61,26 @@ class _MapPageState extends ConsumerState<MapPage> {
   GoogleMapController? _controller;
   CameraPosition? _lastCameraPosition;
   Point? _selectedPoint;
+  Timer? _cameraSaveTimer;
+  double? _lastAppliedHeading;
+
+  // BitmapDescriptor は同一性比較のため、build のたびに生成し直すと全
+  // マーカーが「変更あり」と diff されてネイティブ側へ毎回再送される。
+  // カテゴリごとに一度だけ生成してキャッシュする。
+  final Map<String, BitmapDescriptor> _markerIcons = {};
+
+  BitmapDescriptor _markerIconFor(String category, KaidoConfig config) {
+    return _markerIcons.putIfAbsent(
+      category,
+      // カテゴリごとの色相付き標準マーカー(旧アプリと同じ方式)
+      () => switch (config.markerHues[category]) {
+        final hue? => BitmapDescriptor.defaultMarkerWithHue(hue),
+        null => BitmapDescriptor.defaultMarkerWithHue(
+          BitmapDescriptor.hueViolet,
+        ),
+      },
+    );
+  }
 
   void _selectPoint(Point point) {
     setState(() => _selectedPoint = point);
@@ -81,12 +104,26 @@ class _MapPageState extends ConsumerState<MapPage> {
     final region = await controller.getVisibleRegion();
     ref.read(mapControllerProvider.notifier).updateVisibleRegion(region);
 
+    _cameraSaveTimer?.cancel();
+    _cameraSaveTimer = Timer(_cameraSaveDebounce, _saveCameraPosition);
+  }
+
+  void _saveCameraPosition() {
     final position = _lastCameraPosition;
-    if (position != null) {
-      final config = ref.read(kaidoConfigProvider);
-      final storage = ref.read(cameraPositionStorageProvider);
-      await storage.write(config.apiContext, position);
+    if (position == null) return;
+    final config = ref.read(kaidoConfigProvider);
+    final storage = ref.read(cameraPositionStorageProvider);
+    unawaited(storage.write(config.apiContext, position));
+  }
+
+  @override
+  void dispose() {
+    final saveTimer = _cameraSaveTimer;
+    if (saveTimer != null && saveTimer.isActive) {
+      saveTimer.cancel();
+      _saveCameraPosition();
     }
+    super.dispose();
   }
 
   @override
@@ -95,6 +132,8 @@ class _MapPageState extends ConsumerState<MapPage> {
     final pointsAsync = ref.watch(pointsProvider);
     final routesAsync = ref.watch(routesProvider);
     final detoursAsync = ref.watch(detoursProvider);
+    final routePolylines = ref.watch(routePolylinesProvider);
+    final detourPolylines = ref.watch(detourPolylinesProvider);
     final mapState = ref.watch(mapControllerProvider);
     final initialCameraAsync = ref.watch(initialCameraPositionProvider);
     final markersVisible = ref.watch(markerVisibilityProvider);
@@ -118,6 +157,11 @@ class _MapPageState extends ConsumerState<MapPage> {
         final controller = _controller;
         if (heading == null || controller == null) return;
         if (!ref.read(mapControllerProvider).isCompassMode) return;
+        final last = _lastAppliedHeading;
+        if (last != null && _headingDelta(last, heading) < _headingThreshold) {
+          return;
+        }
+        _lastAppliedHeading = heading;
         final current = _lastCameraPosition;
         unawaited(
           controller.animateCamera(
@@ -133,6 +177,8 @@ class _MapPageState extends ConsumerState<MapPage> {
         );
       });
 
+    final polylines = {...routePolylines, ...detourPolylines};
+
     return Scaffold(
       body: initialCameraAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -141,6 +187,7 @@ class _MapPageState extends ConsumerState<MapPage> {
           pointsAsync: pointsAsync,
           routesAsync: routesAsync,
           detoursAsync: detoursAsync,
+          polylines: polylines,
           mapState: mapState,
           markersVisible: markersVisible,
           initialCameraPosition: const CameraPosition(
@@ -153,6 +200,7 @@ class _MapPageState extends ConsumerState<MapPage> {
           pointsAsync: pointsAsync,
           routesAsync: routesAsync,
           detoursAsync: detoursAsync,
+          polylines: polylines,
           mapState: mapState,
           markersVisible: markersVisible,
           initialCameraPosition:
@@ -172,13 +220,12 @@ class _MapPageState extends ConsumerState<MapPage> {
     required AsyncValue<List<Point>> pointsAsync,
     required AsyncValue<List<RoutePoint>> routesAsync,
     required AsyncValue<List<Detour>> detoursAsync,
+    required Set<Polyline> polylines,
     required MapState mapState,
     required bool markersVisible,
     required CameraPosition initialCameraPosition,
   }) {
     final points = pointsAsync.value ?? const <Point>[];
-    final routes = routesAsync.value ?? const <RoutePoint>[];
-    final detours = detoursAsync.value ?? const <Detour>[];
     final isLoading = pointsAsync.isLoading ||
         routesAsync.isLoading ||
         detoursAsync.isLoading;
@@ -189,13 +236,7 @@ class _MapPageState extends ConsumerState<MapPage> {
                 (point) => Marker(
                   markerId: MarkerId('point_${point.id}'),
                   position: LatLng(point.lat, point.lng),
-                  // カテゴリごとの色相付き標準マーカー（旧アプリと同じ方式）
-                  icon: switch (config.markerHues[point.category]) {
-                    final hue? => BitmapDescriptor.defaultMarkerWithHue(hue),
-                    null => BitmapDescriptor.defaultMarkerWithHue(
-                      BitmapDescriptor.hueViolet,
-                    ),
-                  },
+                  icon: _markerIconFor(point.category, config),
                   onTap: () => _selectPoint(point),
                 ),
               )
@@ -207,10 +248,7 @@ class _MapPageState extends ConsumerState<MapPage> {
         GoogleMap(
           initialCameraPosition: initialCameraPosition,
           markers: markers,
-          polylines: {
-            ...routes.toPolylines(color: _routeColor, width: _routeWidth),
-            ...detours.toPolylines(color: _detourColor, width: _detourWidth),
-          },
+          polylines: polylines,
           onMapCreated: (controller) {
             _controller = controller;
             _lastCameraPosition ??= initialCameraPosition;

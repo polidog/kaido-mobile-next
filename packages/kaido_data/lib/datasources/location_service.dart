@@ -35,5 +35,8 @@ class GeolocatorLocationService implements LocationService {
   Future<Position> getCurrentPosition() => Geolocator.getCurrentPosition();
 
   @override
-  Stream<Position> positionStream() => Geolocator.getPositionStream();
+  Stream<Position> positionStream() => Geolocator.getPositionStream(
+    // 静止中の毎秒イベントを抑止し、実際に移動したときだけ流す。
+    locationSettings: const LocationSettings(distanceFilter: 5),
+  );
 }

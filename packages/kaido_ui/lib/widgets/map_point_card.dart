@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:kaido_data/models/point.dart';
 
+/// Thumbnail edge length (logical pixels) for the point image.
+const double _thumbnailSize = 88;
+
 /// Bottom card shown on the map when a [Point] marker is tapped.
 ///
 /// Replaces the native map info window, which is too small to read and
@@ -47,7 +50,16 @@ class MapPointCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final imageProvider = _imageProvider;
+    final rawImageProvider = _imageProvider;
+    // サムネイル表示なので原寸デコードを避け、表示サイズに合わせて縮小
+    // デコードする(メモリとデコード時間の削減)。
+    final imageProvider = rawImageProvider == null
+        ? null
+        : ResizeImage.resizeIfNeeded(
+            (_thumbnailSize * MediaQuery.devicePixelRatioOf(context)).round(),
+            null,
+            rawImageProvider,
+          );
     final accentColor = _accentColor;
 
     return Material(
@@ -65,8 +77,8 @@ class MapPointCard extends StatelessWidget {
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: SizedBox(
-                  width: 88,
-                  height: 88,
+                  width: _thumbnailSize,
+                  height: _thumbnailSize,
                   child: imageProvider != null
                       ? Image(image: imageProvider, fit: BoxFit.cover)
                       : ColoredBox(

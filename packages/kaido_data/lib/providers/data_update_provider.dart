@@ -18,11 +18,15 @@ class DataUpdate extends _$DataUpdate {
     // Providers may not modify other providers during their (synchronous)
     // initialization, so defer the refreshes by one microtask.
     await null;
-    await ref.read(pointsProvider.notifier).refresh();
+    // 3 つのリフレッシュに相互依存はないため並列に実行する。エラーは各
+    // provider の state に guard されるので Future.wait は失敗しない。
+    await Future.wait([
+      ref.read(pointsProvider.notifier).refresh(),
+      ref.read(routesProvider.notifier).refresh(),
+      ref.read(detoursProvider.notifier).refresh(),
+    ]);
     _throwIfFailed(ref.read(pointsProvider));
-    await ref.read(routesProvider.notifier).refresh();
     _throwIfFailed(ref.read(routesProvider));
-    await ref.read(detoursProvider.notifier).refresh();
     _throwIfFailed(ref.read(detoursProvider));
   }
 

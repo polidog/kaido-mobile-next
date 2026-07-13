@@ -135,8 +135,8 @@ void main() {
         child: MaterialApp.router(routerConfig: router),
       ),
     );
-    // pump() only — pumpAndSettle would trigger the 3-second Timer
-    // and navigate away from SplashPage.
+    // pump() only — advancing time would fire the splash's navigation
+    // timers and move away from SplashPage.
     await tester.pump();
     expect(find.byType(SplashPage), findsOneWidget);
   });
