@@ -26,6 +26,7 @@ export 'providers/contact_config_provider.dart';
 export 'providers/data_update_provider.dart';
 export 'providers/datasource_providers.dart';
 export 'providers/detours_provider.dart';
+export 'providers/feature_flags_provider.dart';
 export 'providers/gokaido_provider.dart';
 export 'providers/help_texts_provider.dart';
 export 'providers/introduction_provider.dart';

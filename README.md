@@ -70,6 +70,7 @@ cp env/production.json.template env/production.json
 | `GOOGLE_API_KEY_IOS` | iOS 用 Google Maps API キー |
 | `GOOGLE_API_KEY_ANDROID` | Android 用 Google Maps API キー |
 | `CONTACT_EMAIL` | 問い合わせ送信先メールアドレス |
+| `FEATURE_3D_HEADING` | (任意) `true` で実験的な3Dヘディングモードを有効化。GPSフォロー中に地図上へ切替ボタンが表示される。未設定時は無効 |
 
 > **注意**: `env/*.json` は `.gitignore` で除外されています。秘密情報を含むため絶対にコミットしないでください。
 

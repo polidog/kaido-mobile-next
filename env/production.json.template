@@ -3,5 +3,6 @@
   "API_TOKEN": "REPLACE_ME",
   "GOOGLE_API_KEY_IOS": "REPLACE_ME",
   "GOOGLE_API_KEY_ANDROID": "REPLACE_ME",
-  "CONTACT_EMAIL": "info@kaido.jp"
+  "CONTACT_EMAIL": "info@kaido.jp",
+  "FEATURE_3D_HEADING": false
 }

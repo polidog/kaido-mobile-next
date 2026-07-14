@@ -1,0 +1,45 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "tokaido (dev)",
+      "request": "launch",
+      "type": "dart",
+      "cwd": "apps/tokaido",
+      "program": "lib/main.dart",
+      "args": ["--dart-define-from-file=../../env/development.json"]
+    },
+    {
+      "name": "nakasendo (dev)",
+      "request": "launch",
+      "type": "dart",
+      "cwd": "apps/nakasendo",
+      "program": "lib/main.dart",
+      "args": ["--dart-define-from-file=../../env/development.json"]
+    },
+    {
+      "name": "koshudo (dev)",
+      "request": "launch",
+      "type": "dart",
+      "cwd": "apps/koshudo",
+      "program": "lib/main.dart",
+      "args": ["--dart-define-from-file=../../env/development.json"]
+    },
+    {
+      "name": "nikkodo (dev)",
+      "request": "launch",
+      "type": "dart",
+      "cwd": "apps/nikkodo",
+      "program": "lib/main.dart",
+      "args": ["--dart-define-from-file=../../env/development.json"]
+    },
+    {
+      "name": "oshudo (dev)",
+      "request": "launch",
+      "type": "dart",
+      "cwd": "apps/oshudo",
+      "program": "lib/main.dart",
+      "args": ["--dart-define-from-file=../../env/development.json"]
+    }
+  ]
+}

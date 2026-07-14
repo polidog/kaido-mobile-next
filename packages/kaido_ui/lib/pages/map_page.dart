@@ -31,23 +31,12 @@ const double _headingThreshold = 1;
 /// GPSジッターによる無駄なカメラ移動を防ぐ。
 const double _recenterThresholdMeters = 10;
 
-bool _isWithinBounds(LatLngBounds bounds, LatLng point) {
-  return point.latitude >= bounds.southwest.latitude &&
-      point.latitude <= bounds.northeast.latitude &&
-      point.longitude >= bounds.southwest.longitude &&
-      point.longitude <= bounds.northeast.longitude;
-}
+/// 3Dヘディングモード(実験的機能)中のカメラのチルト角(度)。
+const double _heading3dTilt = 60;
 
-/// Filters [points] down to those within [bounds].
-///
-/// If [bounds] is `null` (e.g. before the map has reported its first
-/// visible region), all [points] are returned.
-List<Point> filterVisiblePoints(List<Point> points, LatLngBounds? bounds) {
-  if (bounds == null) return points;
-  return points
-      .where((point) => _isWithinBounds(bounds, LatLng(point.lat, point.lng)))
-      .toList();
-}
+/// 3Dヘディングモード突入時のズームレベル。現在のズームがこれより
+/// 手前(小さい)場合のみズームインする。
+const double _heading3dZoom = 17;
 
 /// Angular difference between two headings in degrees, accounting for
 /// wrap-around at 360°.
@@ -77,6 +66,14 @@ class _MapPageState extends ConsumerState<MapPage> {
   // ボタンを表示する。onCameraMove は高頻度で発火するので、ページ全体の
   // rebuild を避けるため ValueNotifier でボタンだけを更新する。
   final ValueNotifier<double> _bearing = ValueNotifier(0);
+
+  /// 3Dヘディングモード突入前のズーム。解除時に元のズームへ戻すために保持する。
+  double? _zoomBeforeHeading3d;
+
+  /// 3Dヘディングモードの切替アニメーション中は true。コンパスの heading
+  /// イベントが割り込むと切替アニメーションが途中で打ち切られ、ズームや
+  /// チルトが中途半端な値で止まるため、この間は heading 追従を止める。
+  bool _heading3dTransitioning = false;
 
   // BitmapDescriptor は同一性比較のため、build のたびに生成し直すと全
   // マーカーが「変更あり」と diff されてネイティブ側へ毎回再送される。
@@ -111,24 +108,75 @@ class _MapPageState extends ConsumerState<MapPage> {
     setState(() => _selectedPoint = null);
   }
 
-  /// コンパスボタンのタップで地図を北向きに戻す。コンパスモード中は
-  /// heading の追従がすぐ回転を戻してしまうため、モードも解除する。
+  /// コンパスボタンのタップで地図を北向きに戻す。コンパスモード
+  /// (3Dヘディングモード)中は heading の追従がすぐ回転を戻してしまう
+  /// ため、モードも解除してチルトを平面に戻す。
   Future<void> _resetBearing() async {
     final controller = _controller;
     final position = _lastCameraPosition;
     if (controller == null || position == null) return;
-    if (ref.read(mapControllerProvider).isCompassMode) {
+    final wasHeading3d = ref.read(mapControllerProvider).isCompassMode;
+    if (wasHeading3d) {
       ref.read(mapControllerProvider.notifier).toggleCompassMode();
     }
+    final zoom = wasHeading3d
+        ? _zoomBeforeHeading3d ?? position.zoom
+        : position.zoom;
+    _zoomBeforeHeading3d = null;
     await controller.animateCamera(
       CameraUpdate.newCameraPosition(
         CameraPosition(
           target: position.target,
-          zoom: position.zoom,
-          tilt: position.tilt,
+          zoom: zoom,
+          tilt: wasHeading3d ? 0 : position.tilt,
         ),
       ),
     );
+  }
+
+  /// 3Dヘディングモード(実験的機能)のトグル。
+  ///
+  /// ON: カメラをチルトさせて [_heading3dZoom] までズームインし、以降は
+  /// compassHeadingProvider の listen が端末の向きへ回転を追従させる。
+  /// OFF: チルトを平面に戻し、突入前のズームへ戻す(向きはコンパス
+  /// ボタンで北へ戻せるので維持)。
+  Future<void> _toggleHeading3dMode() async {
+    final controller = _controller;
+    final position = _lastCameraPosition;
+    if (controller == null || position == null) return;
+    final wasActive = ref.read(mapControllerProvider).isCompassMode;
+    ref.read(mapControllerProvider.notifier).toggleCompassMode();
+    final double zoom;
+    if (wasActive) {
+      zoom = _zoomBeforeHeading3d ?? position.zoom;
+      _zoomBeforeHeading3d = null;
+    } else {
+      _zoomBeforeHeading3d = position.zoom;
+      // すでに [_heading3dZoom] より寄っている場合はズームアウトしない。
+      zoom = math.max(position.zoom, _heading3dZoom);
+    }
+    _heading3dTransitioning = true;
+    try {
+      await controller.animateCamera(
+        CameraUpdate.newCameraPosition(
+          CameraPosition(
+            target: position.target,
+            zoom: zoom,
+            bearing: position.bearing,
+            tilt: wasActive ? 0 : _heading3dTilt,
+          ),
+        ),
+      );
+    } finally {
+      _heading3dTransitioning = false;
+    }
+  }
+
+  /// 3Dヘディングモードを解除してチルトを平面に戻す。
+  /// GPSフォロー解除でボタンが消えるときに、モードだけ残らないようにする。
+  Future<void> _exitHeading3dMode() async {
+    if (!ref.read(mapControllerProvider).isCompassMode) return;
+    await _toggleHeading3dMode();
   }
 
   /// 現在地へカメラを移動する(旧アプリと同じ挙動)。
@@ -162,13 +210,7 @@ class _MapPageState extends ConsumerState<MapPage> {
     }
   }
 
-  Future<void> _handleCameraIdle() async {
-    final controller = _controller;
-    if (controller == null) return;
-
-    final region = await controller.getVisibleRegion();
-    ref.read(mapControllerProvider.notifier).updateVisibleRegion(region);
-
+  void _handleCameraIdle() {
     // フォローモード中はユーザーが地図を動かしても現在地へ戻す
     // (旧アプリと同じ挙動)。
     if (ref.read(mapControllerProvider).isFollowingUser) {
@@ -209,12 +251,17 @@ class _MapPageState extends ConsumerState<MapPage> {
     final mapState = ref.watch(mapControllerProvider);
     final initialCameraAsync = ref.watch(initialCameraPositionProvider);
     final markersVisible = ref.watch(markerVisibilityProvider);
+    final heading3dEnabled = ref.watch(heading3dFeatureEnabledProvider);
 
     ref
       ..listen(mapControllerProvider.select((state) => state.isFollowingUser), (
         previous,
         next,
       ) {
+        // GPSフォロー解除で3Dヘディングボタンが消えるため、モードも解除する。
+        if (!next) {
+          unawaited(_exitHeading3dMode());
+        }
         // GPSボタンのタップで必ずトグルされるため、変化のたびに現在地へ
         // カメラを移動する。
         unawaited(_moveToCurrentLocation());
@@ -237,6 +284,9 @@ class _MapPageState extends ConsumerState<MapPage> {
         final controller = _controller;
         if (heading == null || controller == null) return;
         if (!ref.read(mapControllerProvider).isCompassMode) return;
+        // モード切替アニメーション中の割り込みを避ける
+        // (理由は [_heading3dTransitioning] のコメントを参照)。
+        if (_heading3dTransitioning) return;
         final last = _lastAppliedHeading;
         if (last != null && _headingDelta(last, heading) < _headingThreshold) {
           return;
@@ -250,7 +300,9 @@ class _MapPageState extends ConsumerState<MapPage> {
                 target: current?.target ?? _fallbackTarget,
                 zoom: current?.zoom ?? _fallbackZoom,
                 bearing: heading,
-                tilt: current?.tilt ?? 0,
+                // モード切替のアニメーション中に heading イベントが割り込んで
+                // チルトが平面へ戻らないよう、モード中は常に固定値を使う。
+                tilt: _heading3dTilt,
               ),
             ),
           ),
@@ -270,6 +322,7 @@ class _MapPageState extends ConsumerState<MapPage> {
           polylines: polylines,
           mapState: mapState,
           markersVisible: markersVisible,
+          heading3dEnabled: heading3dEnabled,
           initialCameraPosition: const CameraPosition(
             target: _fallbackTarget,
             zoom: _fallbackZoom,
@@ -283,6 +336,7 @@ class _MapPageState extends ConsumerState<MapPage> {
           polylines: polylines,
           mapState: mapState,
           markersVisible: markersVisible,
+          heading3dEnabled: heading3dEnabled,
           initialCameraPosition:
               cameraPosition ??
               const CameraPosition(
@@ -303,6 +357,7 @@ class _MapPageState extends ConsumerState<MapPage> {
     required Set<Polyline> polylines,
     required MapState mapState,
     required bool markersVisible,
+    required bool heading3dEnabled,
     required CameraPosition initialCameraPosition,
   }) {
     final points = pointsAsync.value ?? const <Point>[];
@@ -310,18 +365,21 @@ class _MapPageState extends ConsumerState<MapPage> {
         routesAsync.isLoading ||
         detoursAsync.isLoading;
 
-    final markers = markersVisible
-        ? filterVisiblePoints(points, mapState.visibleRegion)
-              .map(
-                (point) => Marker(
-                  markerId: MarkerId('point_${point.id}'),
-                  position: LatLng(point.lat, point.lng),
-                  icon: _markerIconFor(point.category, config),
-                  onTap: () => _selectPoint(point),
-                ),
-              )
-              .toSet()
-        : const <Marker>{};
+    // マーカーは全ポイント分を一度だけネイティブ側へ登録し、ポイント表示の
+    // トグルは visible フラグの切替のみで行う(旧アプリと同じ方式)。カメラが
+    // 止まるたびに表示領域でマーカーを入れ替えると、その大量更新が直後の
+    // ジェスチャー(特に二本指の回転)に割り込んで地図を操作できなくなる。
+    final markers = points
+        .map(
+          (point) => Marker(
+            markerId: MarkerId('point_${point.id}'),
+            position: LatLng(point.lat, point.lng),
+            icon: _markerIconFor(point.category, config),
+            visible: markersVisible,
+            onTap: () => _selectPoint(point),
+          ),
+        )
+        .toSet();
 
     return Stack(
       children: [
@@ -349,6 +407,17 @@ class _MapPageState extends ConsumerState<MapPage> {
           right: 12,
           child: _CompassButton(bearing: _bearing, onTap: _resetBearing),
         ),
+        // 3Dヘディングモード(実験的機能)の切替ボタン。フィーチャーフラグが
+        // 有効かつGPSフォロー中のみ、コンパスボタンの下に表示する。
+        if (heading3dEnabled && mapState.isFollowingUser)
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 68,
+            right: 12,
+            child: _Heading3dButton(
+              isActive: mapState.isCompassMode,
+              onTap: _toggleHeading3dMode,
+            ),
+          ),
         if (isLoading)
           const Positioned(
             top: 0,
@@ -386,6 +455,39 @@ class _MapPageState extends ConsumerState<MapPage> {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// 3Dヘディングモード(実験的機能)の切替ボタン。
+///
+/// GPSフォロー中のみ表示される丸ボタン。タップでカメラをチルトさせ、
+/// 端末の向きに地図の回転を追従させるモードを切り替える。
+class _Heading3dButton extends StatelessWidget {
+  const _Heading3dButton({required this.isActive, required this.onTap});
+
+  final bool isActive;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+    return Material(
+      color: isActive ? primary : Colors.white,
+      shape: const CircleBorder(),
+      elevation: 2,
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Icon(
+            Icons.threed_rotation,
+            size: 24,
+            color: isActive ? Colors.white : primary,
+          ),
+        ),
+      ),
     );
   }
 }
