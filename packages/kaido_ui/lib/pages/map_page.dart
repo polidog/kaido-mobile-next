@@ -481,10 +481,15 @@ class _Heading3dButton extends StatelessWidget {
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.all(10),
-          child: Icon(
-            Icons.threed_rotation,
-            size: 24,
-            color: isActive ? Colors.white : primary,
+          // 矢印を near_me と同じ北東向きにする(丸は回転しても見た目が
+          // 変わらないため、アイコンごと回転させる)。
+          child: Transform.rotate(
+            angle: 45 * math.pi / 180,
+            child: Icon(
+              Icons.assistant_navigation,
+              size: 24,
+              color: isActive ? Colors.white : primary,
+            ),
           ),
         ),
       ),
