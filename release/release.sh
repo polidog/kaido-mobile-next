@@ -6,31 +6,38 @@ ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 CREDENTIALS_DIR="$ROOT_DIR/.credentials"
 
 # ── 対応アプリ一覧 ─────────────────────────────────────
-declare -A APP_BUNDLE_IOS=(
-  [tokaido]="com.ground-base.tokaido"
-  [nakasendo]="com.ground-base.nakasendo"
-  [koshudo]="com.ground-base.koshudo"
-  [nikkodo]="com.ground-base.nikkodo"
-  [oshudo]="com.ground-base.oshudo"
-)
-
-declare -A APP_BUNDLE_ANDROID=(
-  [tokaido]="com.groundbase.tokaido"
-  [nakasendo]="com.groundbase.nakasendo"
-  [koshudo]="com.groundbase.koshudo"
-  [nikkodo]="com.groundbase.nikkodo"
-  [oshudo]="com.groundbase.oshudo"
-)
-
-declare -A APP_DISPLAY_NAME=(
-  [tokaido]="東海道五十三次"
-  [nakasendo]="中山道六十九次"
-  [koshudo]="甲州道中四十四次"
-  [nikkodo]="日光道中二十一次"
-  [oshudo]="奥州道中十次"
-)
-
+# macOS 標準の bash 3.2 には連想配列がないため case 関数で定義する
 ALL_APPS=(tokaido nakasendo koshudo nikkodo oshudo)
+
+bundle_ios() {
+  case "$1" in
+    tokaido)   echo "com.ground-base.tokaido" ;;
+    nakasendo) echo "com.ground-base.nakasendo" ;;
+    koshudo)   echo "com.ground-base.koshudo" ;;
+    nikkodo)   echo "com.ground-base.nikkodo" ;;
+    oshudo)    echo "com.ground-base.oshudo" ;;
+  esac
+}
+
+bundle_android() {
+  case "$1" in
+    tokaido)   echo "com.groundbase.tokaido" ;;
+    nakasendo) echo "com.groundbase.nakasendo" ;;
+    koshudo)   echo "com.groundbase.koshudo" ;;
+    nikkodo)   echo "com.groundbase.nikkodo" ;;
+    oshudo)    echo "com.groundbase.oshudo" ;;
+  esac
+}
+
+display_name() {
+  case "$1" in
+    tokaido)   echo "東海道五十三次" ;;
+    nakasendo) echo "中山道六十九次" ;;
+    koshudo)   echo "甲州道中四十四次" ;;
+    nikkodo)   echo "日光道中二十一次" ;;
+    oshudo)    echo "奥州道中十次" ;;
+  esac
+}
 
 # ── ヘルパー ───────────────────────────────────────────
 RED='\033[0;31m'
@@ -52,7 +59,8 @@ Usage: $(basename "$0") <command> [options]
 Commands:
   build   <app> <platform>    ビルドのみ（ストア提出なし）
   release <app> <platform>    ビルド + ストア提出
-  version <app> <version>     バージョン番号を更新
+  version <app> <version>     バージョン番号を更新（app に all で全アプリ一括。
+                              ビルド番号は全アプリ中の最大値+1 で統一採番）
   status                      認証情報のセットアップ状態を確認
   setup                       認証情報のセットアップ
 
@@ -64,7 +72,8 @@ Examples:
   ./release/release.sh release tokaido ios       # 東海道 iOS をストアに提出
   ./release/release.sh release tokaido all       # 東海道 iOS + Android を提出
   ./release/release.sh build nakasendo android   # 中山道 Android をビルドのみ
-  ./release/release.sh version tokaido 3.2.0     # 東海道のバージョンを 3.2.0 に更新
+  ./release/release.sh version all 4.1.0         # 全アプリのバージョンを 4.1.0 に更新
+  ./release/release.sh version tokaido 4.1.0     # 東海道のみバージョンを 4.1.0 に更新
 EOF
   exit 1
 }
@@ -199,24 +208,50 @@ cmd_status() {
 }
 
 # ── バージョン更新 ─────────────────────────────────────
-cmd_version() {
+# ビルド番号は全アプリで統一する（Google Play の versionCode 要件を
+# 満たすため、常に全アプリ中の最大ビルド番号 +1 を採番する）
+max_build_number() {
+  local max=0
+  for a in "${ALL_APPS[@]}"; do
+    local p="$ROOT_DIR/apps/$a/pubspec.yaml"
+    [[ -f "$p" ]] || continue
+    local b
+    b=$(grep '^version:' "$p" | head -1 | grep -o '+[0-9]*' | tr -d '+')
+    [[ -n "$b" && "$b" -gt "$max" ]] && max=$b
+  done
+  echo "$max"
+}
+
+update_app_version() {
   local app="$1"
   local new_version="$2"
-  validate_app "$app"
+  local new_build="$3"
 
   local pubspec="$ROOT_DIR/apps/$app/pubspec.yaml"
   [[ -f "$pubspec" ]] || die "pubspec.yaml が見つかりません: $pubspec"
 
   local current
   current=$(grep '^version:' "$pubspec" | head -1 | sed 's/version: *//')
-  log "${APP_DISPLAY_NAME[$app]}: $current → $new_version"
-
-  local current_build
-  current_build=$(echo "$current" | grep -o '+[0-9]*' | tr -d '+')
-  local new_build=$((current_build + 1))
-
   sed -i '' "s/^version: .*/version: ${new_version}+${new_build}/" "$pubspec"
-  ok "バージョンを更新: ${new_version}+${new_build}"
+  ok "$(display_name "$app"): $current → ${new_version}+${new_build}"
+}
+
+cmd_version() {
+  local app="$1"
+  local new_version="$2"
+
+  local new_build
+  new_build=$(( $(max_build_number) + 1 ))
+
+  if [[ "$app" == "all" ]]; then
+    log "全アプリのバージョンを ${new_version}+${new_build} に更新します"
+    for a in "${ALL_APPS[@]}"; do
+      update_app_version "$a" "$new_version" "$new_build"
+    done
+  else
+    validate_app "$app"
+    update_app_version "$app" "$new_version" "$new_build"
+  fi
 }
 
 # ── ビルド ─────────────────────────────────────────────
@@ -224,7 +259,7 @@ build_ios() {
   local app="$1"
   local app_dir="$ROOT_DIR/apps/$app"
 
-  log "iOS ビルド開始: ${APP_DISPLAY_NAME[$app]}"
+  log "iOS ビルド開始: $(display_name "$app")"
   cd "$app_dir"
 
   flutter build ipa \
@@ -245,7 +280,7 @@ build_android() {
   local app="$1"
   local app_dir="$ROOT_DIR/apps/$app"
 
-  log "Android ビルド開始: ${APP_DISPLAY_NAME[$app]}"
+  log "Android ビルド開始: $(display_name "$app")"
   cd "$app_dir"
 
   flutter build appbundle \
@@ -268,7 +303,7 @@ upload_ios() {
   check_ios_credentials || die "iOS 認証情報が未設定です。先に ./scripts/release.sh setup を実行してください"
   source "$CREDENTIALS_DIR/apple_api_config.env"
 
-  log "App Store Connect にアップロード中: ${APP_DISPLAY_NAME[$app]}"
+  log "App Store Connect にアップロード中: $(display_name "$app")"
 
   xcrun altool --upload-app \
     --type ios \
@@ -283,13 +318,13 @@ upload_ios() {
 upload_android() {
   local app="$1"
   local aab_path="$2"
-  local package_name="${APP_BUNDLE_ANDROID[$app]}"
+  local package_name="$(bundle_android "$app")"
 
   check_android_credentials || die "Android 認証情報が未設定です。先に ./scripts/release.sh setup を実行してください"
 
   command -v fastlane >/dev/null 2>&1 || die "fastlane が必要です: gem install fastlane"
 
-  log "Google Play Console にアップロード中: ${APP_DISPLAY_NAME[$app]}"
+  log "Google Play Console にアップロード中: $(display_name "$app")"
 
   fastlane supply \
     --aab "$aab_path" \
@@ -312,7 +347,7 @@ cmd_build() {
   validate_app "$app"
   validate_platform "$platform"
 
-  log "━━━ ビルド: ${APP_DISPLAY_NAME[$app]} ($platform) ━━━"
+  log "━━━ ビルド: $(display_name "$app") ($platform) ━━━"
 
   if [[ "$platform" == "ios" || "$platform" == "all" ]]; then
     build_ios "$app"
@@ -321,7 +356,7 @@ cmd_build() {
     build_android "$app"
   fi
 
-  ok "ビルド完了: ${APP_DISPLAY_NAME[$app]}"
+  ok "ビルド完了: $(display_name "$app")"
 }
 
 cmd_release() {
@@ -330,7 +365,7 @@ cmd_release() {
   validate_app "$app"
   validate_platform "$platform"
 
-  log "━━━ リリース: ${APP_DISPLAY_NAME[$app]} ($platform) ━━━"
+  log "━━━ リリース: $(display_name "$app") ($platform) ━━━"
   echo ""
 
   # バージョン確認
@@ -360,7 +395,7 @@ cmd_release() {
     echo ""
   fi
 
-  ok "━━━ リリース完了: ${APP_DISPLAY_NAME[$app]} ($platform) ━━━"
+  ok "━━━ リリース完了: $(display_name "$app") ($platform) ━━━"
 }
 
 # ── エントリポイント ───────────────────────────────────
