@@ -30,10 +30,19 @@ Set<Polyline> routePolylines(Ref ref) {
   );
 }
 
-/// Memoized polylines for detour routes (寄り道), using the mapper's
-/// default styling. See [routePolylines].
+/// Fallback polyline color for detour routes (寄り道)。DB 側で color が
+/// 設定されている迂回路はそちらが優先される。
+const Color detourPolylineColor = Colors.green;
+
+/// Polyline width for detour routes (寄り道)。本道と同じ太さにする。
+const int detourPolylineWidth = 5;
+
+/// Memoized polylines for detour routes (寄り道). See [routePolylines].
 @riverpod
 Set<Polyline> detourPolylines(Ref ref) {
   final detours = ref.watch(detoursProvider).value ?? const <Detour>[];
-  return detours.toPolylines();
+  return detours.toPolylines(
+    color: detourPolylineColor,
+    width: detourPolylineWidth,
+  );
 }
