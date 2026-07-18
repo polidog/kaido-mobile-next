@@ -53,9 +53,12 @@
 - macOS（Xcode インストール済み）
 - Flutter SDK
 - fastlane（Android 提出に必要）
+- Rust ツールチェーン（libsql_dart のビルドに必要。iOS/Android の
+  クロスコンパイルターゲットはビルド時に自動取得される）
 
 ```bash
-gem install fastlane
+brew install fastlane
+brew install rustup && rustup default stable
 ```
 
 ## 初期セットアップ
