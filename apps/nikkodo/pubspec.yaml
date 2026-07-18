@@ -1,7 +1,7 @@
 name: nikkodo
 description: "日光道中二十一次アプリ"
 publish_to: none
-version: 4.0.0+28
+version: 4.0.0+30
 
 environment:
   sdk: ^3.12.0
