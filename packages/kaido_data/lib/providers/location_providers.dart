@@ -34,9 +34,18 @@ Stream<double?> compassHeading(Ref ref) =>
 
 /// Reads the persisted [CameraPosition] for the current app's API context,
 /// or `null` if none has been saved yet.
+///
+/// ナビモード(3Dヘディング)中にアプリを終了してもチルトは持ち越さず、
+/// 起動時は常に平面(2D)の地図で開く。
 @riverpod
 Future<CameraPosition?> initialCameraPosition(Ref ref) async {
   final config = ref.watch(kaidoConfigProvider);
   final storage = ref.watch(cameraPositionStorageProvider);
-  return storage.read(config.apiContext);
+  final saved = await storage.read(config.apiContext);
+  if (saved == null || saved.tilt == 0) return saved;
+  return CameraPosition(
+    target: saved.target,
+    zoom: saved.zoom,
+    bearing: saved.bearing,
+  );
 }

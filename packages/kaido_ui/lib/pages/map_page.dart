@@ -184,6 +184,23 @@ class _MapPageState extends ConsumerState<MapPage> {
     ref.read(mapControllerProvider.notifier).toggleCompassMode();
   }
 
+  /// チルトを平面(2D)に戻す。GPSフォロー解除時に呼ばれる。
+  Future<void> _flattenCamera() async {
+    final controller = _controller;
+    final position = _lastCameraPosition;
+    if (controller == null || position == null) return;
+    if (position.tilt == 0) return;
+    await controller.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(
+          target: position.target,
+          zoom: position.zoom,
+          bearing: position.bearing,
+        ),
+      ),
+    );
+  }
+
   /// 現在地へカメラを移動する(旧アプリと同じ挙動)。
   ///
   /// GPSボタンのタップ時と、フォローモード中に地図を動かしたあとの
@@ -263,13 +280,19 @@ class _MapPageState extends ConsumerState<MapPage> {
         previous,
         next,
       ) {
-        // GPSフォロー解除時はナビゲーションモードも解除する。
-        if (!next) {
+        if (next) {
+          // フォロー開始時は現在地へカメラを移動する。
+          unawaited(_moveToCurrentLocation());
+        } else if (ref.read(mapControllerProvider).isCompassMode) {
+          // フォロー解除時はナビゲーションモードも解除する。チルトは
+          // isCompassMode の listen が走らせる解除遷移が平面へ戻すため、
+          // ここで別のカメラ移動を重ねない(遷移が打ち切られてチルトが
+          // 残るのを防ぐ)。
           _exitHeading3dMode();
+        } else {
+          // 手動チルト等が残っていても、GPSオフでは平面(2D)に戻す。
+          unawaited(_flattenCamera());
         }
-        // GPSボタンのタップで必ずトグルされるため、変化のたびに現在地へ
-        // カメラを移動する。
-        unawaited(_moveToCurrentLocation());
       })
       ..listen(mapControllerProvider.select((state) => state.isCompassMode), (
         previous,
