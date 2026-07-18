@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:kaido_data/models/json_converters.dart';
 
 part 'point.freezed.dart';
 part 'point.g.dart';
@@ -8,7 +9,7 @@ part 'point.g.dart';
 abstract class Point with _$Point {
   /// Creates a [Point].
   const factory Point({
-    required int id,
+    @JsonKey(fromJson: jsonIdToString) required String id,
     required String title,
     required double lat,
     required double lng,

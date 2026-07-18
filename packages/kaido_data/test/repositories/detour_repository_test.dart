@@ -17,7 +17,7 @@ void main() {
 
   const bundledDetours = [
     Detour(
-      id: 99,
+      id: '99',
       name: 'バンドル',
       routes: [
         DetourRoutePoint(lat: 0, lng: 0, number: 1),
@@ -27,7 +27,7 @@ void main() {
   ];
   const remoteDetours = [
     Detour(
-      id: 1,
+      id: '1',
       name: 'API取得',
       routes: [
         DetourRoutePoint(lat: 1, lng: 2, number: 1),
@@ -37,7 +37,7 @@ void main() {
   ];
   const cachedDetours = [
     Detour(
-      id: 2,
+      id: '2',
       name: 'キャッシュ',
       routes: [
         DetourRoutePoint(lat: 3, lng: 4, number: 1),

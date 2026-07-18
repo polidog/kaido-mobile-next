@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:kaido_api/models/detour_dto.dart';
+import 'package:kaido_api/models/map_summary_dto.dart';
 import 'package:kaido_api/models/route_point_dto.dart';
 import 'package:kaido_api/models/spot_dto.dart';
 import 'package:retrofit/retrofit.dart';
@@ -11,6 +12,11 @@ part 'kaido_api_client.g.dart';
 abstract class KaidoApiClient {
   /// Creates a [KaidoApiClient] backed by [dio].
   factory KaidoApiClient(Dio dio, {String baseUrl}) = _KaidoApiClient;
+
+  /// Fetches the list of available maps (街道) with their Turso database
+  /// URLs.
+  @GET('/api/v1/maps')
+  Future<MapsListDto> getMaps();
 
   /// Fetches the spots (宿場・名所) for the given [context] (e.g. `tokaido`).
   @GET('/api/v1/maps/{context}/spots')

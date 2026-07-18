@@ -46,9 +46,11 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-log()   { echo -e "${BLUE}[kaido]${NC} $1"; }
-ok()    { echo -e "${GREEN}[  OK ]${NC} $1"; }
-warn()  { echo -e "${YELLOW}[WARN ]${NC} $1"; }
+# ログはすべて stderr に出す。build_ios / build_android の戻り値（成果物パス）を
+# コマンド置換で受け取る設計のため、stdout にログを混ぜてはならない
+log()   { echo -e "${BLUE}[kaido]${NC} $1" >&2; }
+ok()    { echo -e "${GREEN}[  OK ]${NC} $1" >&2; }
+warn()  { echo -e "${YELLOW}[WARN ]${NC} $1" >&2; }
 error() { echo -e "${RED}[ERROR]${NC} $1" >&2; }
 die()   { error "$1"; exit 1; }
 
@@ -266,7 +268,7 @@ build_ios() {
     --release \
     --dart-define-from-file="$ROOT_DIR/env/production.json" \
     --export-options-plist="$app_dir/ios/ExportOptions.plist" \
-    2>&1 | while IFS= read -r line; do echo "  $line"; done
+    2>&1 | while IFS= read -r line; do echo "  $line" >&2; done
 
   local ipa_path
   ipa_path=$(find "$app_dir/build/ios/ipa" -name "*.ipa" -type f 2>/dev/null | head -1)
@@ -280,13 +282,18 @@ build_android() {
   local app="$1"
   local app_dir="$ROOT_DIR/apps/$app"
 
+  # Gradle には Java が必要。未設定なら brew の OpenJDK を使う
+  if [[ -z "${JAVA_HOME:-}" && -d "/opt/homebrew/opt/openjdk/libexec/openjdk.jdk/Contents/Home" ]]; then
+    export JAVA_HOME="/opt/homebrew/opt/openjdk/libexec/openjdk.jdk/Contents/Home"
+  fi
+
   log "Android ビルド開始: $(display_name "$app")"
   cd "$app_dir"
 
   flutter build appbundle \
     --release \
     --dart-define-from-file="$ROOT_DIR/env/production.json" \
-    2>&1 | while IFS= read -r line; do echo "  $line"; done
+    2>&1 | while IFS= read -r line; do echo "  $line" >&2; done
 
   local aab_path="$app_dir/build/app/outputs/bundle/release/app-release.aab"
   [[ -f "$aab_path" ]] || die "AAB ファイルが見つかりません: $aab_path"
@@ -310,7 +317,7 @@ upload_ios() {
     --file "$ipa_path" \
     --apiKey "$APPLE_API_KEY_ID" \
     --apiIssuer "$APPLE_API_ISSUER_ID" \
-    2>&1 | while IFS= read -r line; do echo "  $line"; done
+    2>&1 | while IFS= read -r line; do echo "  $line" >&2; done
 
   ok "App Store Connect へのアップロード完了"
 }
@@ -335,7 +342,7 @@ upload_android() {
     --skip_upload_changelogs \
     --skip_upload_images \
     --skip_upload_screenshots \
-    2>&1 | while IFS= read -r line; do echo "  $line"; done
+    2>&1 | while IFS= read -r line; do echo "  $line" >&2; done
 
   ok "Google Play Console へのアップロード完了（内部テストトラック）"
 }

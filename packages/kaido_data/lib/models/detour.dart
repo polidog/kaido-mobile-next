@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:kaido_data/models/json_converters.dart';
 
 part 'detour.freezed.dart';
 part 'detour.g.dart';
@@ -23,8 +24,9 @@ abstract class DetourRoutePoint with _$DetourRoutePoint {
 abstract class Detour with _$Detour {
   /// Creates a [Detour].
   const factory Detour({
-    required int id,
+    @JsonKey(fromJson: jsonIdToString) required String id,
     required String name,
+    String? color,
     @Default(<DetourRoutePoint>[]) List<DetourRoutePoint> routes,
   }) = _Detour;
 

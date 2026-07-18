@@ -17,7 +17,7 @@ void main() {
 
       final point = dto.toPoint();
 
-      expect(point.id, dto.id);
+      expect(point.id, dto.id.toString());
       expect(point.title, dto.title);
       expect(point.lat, dto.lat);
       expect(point.lng, dto.lng);
@@ -49,8 +49,8 @@ void main() {
       final points = dtos.toPoints();
 
       expect(points, hasLength(2));
-      expect(points[0].id, 1);
-      expect(points[1].id, 2);
+      expect(points[0].id, '1');
+      expect(points[1].id, '2');
     });
   });
 
@@ -60,11 +60,11 @@ void main() {
 
       final routePoint = dto.toRoutePoint();
 
-      expect(routePoint.id, dto.id);
+      expect(routePoint.id, dto.id.toString());
       expect(routePoint.lat, dto.lat);
       expect(routePoint.lng, dto.lng);
       expect(routePoint.order, dto.order);
-      expect(routePoint.groupId, dto.groupId);
+      expect(routePoint.groupId, dto.groupId?.toString());
     });
 
     test('toRoutePoints converts a list', () {
@@ -90,7 +90,7 @@ void main() {
 
       final detour = dto.toDetour();
 
-      expect(detour.id, dto.id);
+      expect(detour.id, dto.id.toString());
       expect(detour.name, dto.name);
       expect(detour.routes, hasLength(2));
       expect(detour.routes[0].lat, dto.routes[0].lat);

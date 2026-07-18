@@ -5,11 +5,11 @@ void main() {
   group('RoutePoint', () {
     test('fromJson/toJson round trip', () {
       const routePoint = RoutePoint(
-        id: 1,
+        id: '1',
         lat: 35.6835,
         lng: 139.7742,
         order: 1,
-        groupId: 10,
+        groupId: '10',
       );
 
       final json = routePoint.toJson();

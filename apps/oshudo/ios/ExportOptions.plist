@@ -10,8 +10,8 @@
     <string>manual</string>
     <key>provisioningProfiles</key>
     <dict>
-        <key>com.ground-base.tokaido</key>
-        <string>kaido-tokaido-appstore</string>
+        <key>com.ground-base.oshudo</key>
+        <string>kaido-oshudo-appstore</string>
     </dict>
     <key>uploadSymbols</key>
     <true/>

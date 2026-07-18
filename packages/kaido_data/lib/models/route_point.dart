@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:kaido_data/models/json_converters.dart';
 
 part 'route_point.freezed.dart';
 part 'route_point.g.dart';
@@ -8,11 +9,12 @@ part 'route_point.g.dart';
 abstract class RoutePoint with _$RoutePoint {
   /// Creates a [RoutePoint].
   const factory RoutePoint({
-    required int id,
+    @JsonKey(fromJson: jsonIdToString) required String id,
     required double lat,
     required double lng,
     int? order,
-    int? groupId,
+    @JsonKey(fromJson: jsonIdToStringOrNull) String? groupId,
+    String? color,
   }) = _RoutePoint;
 
   /// Creates a [RoutePoint] from decoded JSON.
