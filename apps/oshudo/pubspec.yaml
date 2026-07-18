@@ -1,7 +1,7 @@
 name: oshudo
 description: "奥州道中十次アプリ"
 publish_to: none
-version: 4.0.0+27
+version: 4.0.0+28
 
 environment:
   sdk: ^3.12.0
