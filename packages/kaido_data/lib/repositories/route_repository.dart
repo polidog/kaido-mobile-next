@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:kaido_api/kaido_api.dart';
 import 'package:kaido_data/datasources/file_cache_data_source.dart';
 import 'package:kaido_data/datasources/local_bundle_data_source.dart';
@@ -40,7 +38,6 @@ class RouteRepository {
     if (!forceRemote) {
       final cached = await _fileCache.readRoutes(context);
       if (cached != null && cached.isNotEmpty) {
-        unawaited(_revalidateCache(context));
         return cached;
       }
     }
@@ -50,17 +47,6 @@ class RouteRepository {
       return data;
     }
     return _fallback(context);
-  }
-
-  Future<void> _revalidateCache(String context) async {
-    final result = await _remote.fetch(context);
-    if (result case ApiSuccess(:final data)) {
-      try {
-        await _fileCache.cacheRoutes(context, data);
-      } on Exception {
-        // ベストエフォートのキャッシュ更新なので、書き込み失敗は無視する。
-      }
-    }
   }
 
   Future<List<RoutePoint>> _fallback(String context) async {

@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kaido_api/kaido_api.dart';
 import 'package:kaido_data/datasources/asset_loader.dart';
@@ -100,28 +99,6 @@ void main() {
     final result = await repo.getPoints('tokaido');
 
     expect(result, cachedPoints);
-  });
-
-  test('cache-first read revalidates the cache in the background', () async {
-    await fileCache.cachePoints('tokaido', cachedPoints);
-
-    final repo = PointRepository(
-      remote: FakePointsRemoteDataSource(const ApiSuccess(remotePoints)),
-      fileCache: fileCache,
-      bundle: bundleDataSource(),
-      assetPrefix: 'assets',
-    );
-
-    await repo.getPoints('tokaido');
-
-    // バックグラウンド再検証がキャッシュを更新するまで待つ。
-    List<Point>? cached;
-    for (var i = 0; i < 100; i++) {
-      cached = await fileCache.readPoints('tokaido');
-      if (listEquals(cached, remotePoints)) break;
-      await Future<void>.delayed(const Duration(milliseconds: 10));
-    }
-    expect(cached, remotePoints);
   });
 
   test('forceRemote bypasses the cache and returns remote data', () async {
