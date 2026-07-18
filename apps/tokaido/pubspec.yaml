@@ -1,7 +1,7 @@
 name: tokaido
 description: "東海道五十三次アプリ"
 publish_to: none
-version: 4.0.0+21
+version: 4.0.0+27
 
 environment:
   sdk: ^3.12.0

@@ -121,6 +121,13 @@ gem install fastlane
 versionCode 単調増加の要件を満たすため）。pubspec の version は直接編集せず、
 必ずこのコマンドを使うこと。
 
+⚠️ この採番はローカルの pubspec しか見ないため、**旧アプリが Play 上で
+使用済みの versionCode との衝突は検知できない**。旧アプリの使用済み最大値は
+26（tokaido、2026-07-18 調査）で、現行の 4.0.0+27 はそれを踏まえた採番。
+「Version code N has already been used」エラーが出たら、Play Developer API の
+edits/bundles 一覧で全パッケージの使用済み versionCode を確認して
+それより大きい番号に更新すること。
+
 ## 対応アプリ
 
 | 引数 | アプリ名 | iOS Bundle ID | Android applicationId |
