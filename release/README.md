@@ -10,19 +10,39 @@
       全アプリの `android/key.properties` 設定済み（alias: `upload`）。
       署名付き AAB のビルドと証明書一致を確認済み（2026-07-14）。
       鍵とパスワードは Downloads に残さず安全な場所にバックアップすること
-- [ ] **App Store Connect API キー** — App Store Connect → ユーザーとアクセス → 統合 →
-      キーを生成（アクセス: App Manager）。`.p8` / Key ID / Issuer ID を取得して
-      `./release/release.sh setup` で登録
-- [ ] **Google Play サービスアカウント JSON** — Google Cloud でサービスアカウント作成 →
-      Play Console の「API アクセス」でリンクしリリース権限を付与 → `setup` で登録
-- [ ] **Apple Team ID → ExportOptions.plist** — Apple Developer の Membership ページで
-      Team ID を確認し、`apps/*/ios/ExportOptions.plist` の
-      `REPLACE_WITH_APPLE_TEAM_ID` を置換（tokaido 以外の4アプリはファイル自体が未作成）
-- [ ] **env/production.json** — `env/production.json.template` を元に作成。
-      API_BASE_URL / API_TOKEN / Google Maps API キー（iOS・Android）を記入
-- [ ] **fastlane** — `gem install fastlane`（Android のアップロードに必要）
-- [ ] **oshudo の App Store Connect アプリ登録** — iOS 版は旧アプリがストア未公開のため、
-      `com.ground-base.oshudo` のアプリを新規作成する必要がある
+- [x] **App Store Connect API キー** — 登録済み（Key ID: RX6B848JH3）。
+      `.credentials/` に加え、altool が参照する `~/.appstoreconnect/private_keys/` にも
+      `.p8` を配置済み。API 疎通確認済み（2026-07-17）
+- [x] **Google Play サービスアカウント JSON** — サービスアカウント
+      `kaido-release@gokaido-1086.iam.gserviceaccount.com` 作成・JSON 登録済み。
+      Play Console「ユーザーと権限」での招待も完了し、全5パッケージで
+      Play Developer API の疎通確認済み（2026-07-17）
+- [x] **Apple Team ID → ExportOptions.plist** — Team ID は `6TGS8GNR43`。
+      ⚠️ bundleIds API の seedId（HWA4V543C6）は App ID プレフィックスであり
+      Team ID ではないので注意。全5アプリの plist を manual 署名 +
+      プロファイル指定（`kaido-<app>-appstore`）で作成済み。
+      `destination` は release.sh の設計（altool で別途アップロード）に合わせ `export`
+- [x] **iOS 署名体制（Xcode ログイン不要のヘッドレス構成）** — 2026-07-18 構築。
+      Apple Distribution 証明書（ID: N9Y792J8Y5、期限 2027-07-17）を
+      fastlane + ASC API キーで作成し、ログインキーチェーンに導入済み
+      （p12 バックアップ: `.credentials/certs/`）。App Store プロファイル
+      `kaido-<app>-appstore` × 5 を作成済み（`.credentials/profiles/`）。
+      pbxproj の Release/Profile 構成は manual 署名。
+      別マシンで構築し直す場合は p12 をインポート後に
+      `security set-key-partition-list -S apple-tool:,apple:,codesign: -s
+      ~/Library/Keychains/login.keychain-db` の実行が必要（errSecInternalComponent 対策）
+- [x] **ビルド検証** — tokaido で iOS（IPA 36MB）/ Android（AAB 60MB）とも
+      成功を確認（2026-07-18）。⚠️ Launch image が Flutter デフォルトのままなので
+      ストア公開までに差し替え推奨
+- [x] **env/production.json** — 作成済み（2026-07-17）。API_BASE_URL は
+      `https://kaido-web-next.vercel.app`、Maps キーは gokaido-1086 の既存キー
+      （iOS: 「iOSアプリ用」/ Android: 「2023Android本番用」）を使用。
+      ⚠️ ただしアプリが使う `/api/v1/maps/{context}/spots|routes|detours` は
+      バックエンド未実装（404）。kaido-web-next 側の実装・デプロイ完了が
+      リリースの前提条件（別セッションで対応中）
+- [x] **fastlane** — インストール済み（brew, 2.237.0）
+- [x] **oshudo の App Store Connect アプリ登録** — 登録済みを確認（2026-07-17、
+      ASC API のアプリ一覧に `com.ground-base.oshudo` が存在）
 
 すべて揃ったら `./release/release.sh build tokaido all` でビルド確認 →
 `release` で TestFlight / 内部テストへ提出する。

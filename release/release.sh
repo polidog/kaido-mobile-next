@@ -280,6 +280,11 @@ build_android() {
   local app="$1"
   local app_dir="$ROOT_DIR/apps/$app"
 
+  # Gradle には Java が必要。未設定なら brew の OpenJDK を使う
+  if [[ -z "${JAVA_HOME:-}" && -d "/opt/homebrew/opt/openjdk/libexec/openjdk.jdk/Contents/Home" ]]; then
+    export JAVA_HOME="/opt/homebrew/opt/openjdk/libexec/openjdk.jdk/Contents/Home"
+  fi
+
   log "Android ビルド開始: $(display_name "$app")"
   cd "$app_dir"
 
