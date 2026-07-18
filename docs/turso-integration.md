@@ -72,3 +72,11 @@ GET /api/v1/maps/{mapId}/token
   （迂回路のみバンドルが空なので初回オフライン時は表示されない）
 - REST の `/api/v1/maps/{context}/spots|routes|detours` エンドポイントは
   もはや不要（kaido_api の該当クライアントコードは互換のため残置）
+
+## スキーマ文書と実 DB の差異（2026-07-18 判明）
+
+kaido-web-next の docs/database-schema.md には `detours.color` が定義されて
+いるが、**実際の各マップ DB の detours テーブルに color カラムは存在しない**
+（route_groups には存在する）。モバイル側は detours を `SELECT *` で読み、
+color は存在すれば使う実装にして両対応済み。バックエンド側でカラムを追加
+するか、スキーマ文書を実体に合わせて修正してほしい。

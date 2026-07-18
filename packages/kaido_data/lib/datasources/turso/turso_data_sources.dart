@@ -138,8 +138,10 @@ class TursoDetoursDataSource implements DetoursRemoteDataSource {
       _database,
       context,
       () async {
+        // 実 DB の detours には color カラムが無い環境がある（スキーマ文書と
+        // 実体の差異）ため、SELECT * で取得し color は存在すれば読む。
         final detourRows = await _database.query(context, '''
-          SELECT id, name, color FROM detours
+          SELECT * FROM detours
         ''');
         final pointRows = await _database.query(context, '''
           SELECT detour_id, latitude, longitude, number
