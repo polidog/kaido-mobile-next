@@ -36,7 +36,7 @@ const double _heading3dTilt = 60;
 
 /// 3Dヘディングモード突入時のズームレベル。現在のズームがこれより
 /// 手前(小さい)場合のみズームインする。
-const double _heading3dZoom = 17;
+const double _heading3dZoom = 19;
 
 /// Angular difference between two headings in degrees, accounting for
 /// wrap-around at 360°.
@@ -69,6 +69,10 @@ class _MapPageState extends ConsumerState<MapPage> {
 
   /// 3Dヘディングモード突入前のズーム。解除時に元のズームへ戻すために保持する。
   double? _zoomBeforeHeading3d;
+
+  /// コンパスボタンからのモード解除時に true。解除のカメラ遷移
+  /// ([_applyHeading3dCamera]) に北向きリセットを織り込むためのフラグ。
+  bool _bearingResetPending = false;
 
   /// 3Dヘディングモードの切替アニメーション中は true。コンパスの heading
   /// イベントが割り込むと切替アニメーションが途中で打ち切られ、ズームや
@@ -108,53 +112,54 @@ class _MapPageState extends ConsumerState<MapPage> {
     setState(() => _selectedPoint = null);
   }
 
-  /// コンパスボタンのタップで地図を北向きに戻す。コンパスモード
+  /// コンパスボタンのタップで地図を北向きに戻す。ナビゲーションモード
   /// (3Dヘディングモード)中は heading の追従がすぐ回転を戻してしまう
   /// ため、モードも解除してチルトを平面に戻す。
   Future<void> _resetBearing() async {
     final controller = _controller;
     final position = _lastCameraPosition;
     if (controller == null || position == null) return;
-    final wasHeading3d = ref.read(mapControllerProvider).isCompassMode;
-    if (wasHeading3d) {
+    if (ref.read(mapControllerProvider).isCompassMode) {
+      // モード解除のカメラ遷移(isCompassMode の listen)に北向きリセットを
+      // 織り込む。ここで直接アニメーションすると遷移と競合するため。
+      _bearingResetPending = true;
       ref.read(mapControllerProvider.notifier).toggleCompassMode();
+      return;
     }
-    final zoom = wasHeading3d
-        ? _zoomBeforeHeading3d ?? position.zoom
-        : position.zoom;
-    _zoomBeforeHeading3d = null;
     await controller.animateCamera(
       CameraUpdate.newCameraPosition(
         CameraPosition(
           target: position.target,
-          zoom: zoom,
-          tilt: wasHeading3d ? 0 : position.tilt,
+          zoom: position.zoom,
+          tilt: position.tilt,
         ),
       ),
     );
   }
 
-  /// 3Dヘディングモード(実験的機能)のトグル。
+  /// ナビゲーションモード(3Dヘディングモード)の切替に合わせたカメラ遷移。
+  /// isCompassMode の listen から呼ばれるため、GPSボタン・コンパスボタン・
+  /// フォロー解除のどこからトグルされても一箇所で遷移する。
   ///
   /// ON: カメラをチルトさせて [_heading3dZoom] までズームインし、以降は
   /// compassHeadingProvider の listen が端末の向きへ回転を追従させる。
-  /// OFF: チルトを平面に戻し、突入前のズームへ戻す(向きはコンパス
-  /// ボタンで北へ戻せるので維持)。
-  Future<void> _toggleHeading3dMode() async {
+  /// OFF: チルトを平面に戻し、突入前のズームへ戻す(向きは
+  /// [_bearingResetPending] が立っているときだけ北へ戻す)。
+  Future<void> _applyHeading3dCamera({required bool active}) async {
     final controller = _controller;
     final position = _lastCameraPosition;
     if (controller == null || position == null) return;
-    final wasActive = ref.read(mapControllerProvider).isCompassMode;
-    ref.read(mapControllerProvider.notifier).toggleCompassMode();
     final double zoom;
-    if (wasActive) {
-      zoom = _zoomBeforeHeading3d ?? position.zoom;
-      _zoomBeforeHeading3d = null;
-    } else {
+    if (active) {
       _zoomBeforeHeading3d = position.zoom;
       // すでに [_heading3dZoom] より寄っている場合はズームアウトしない。
       zoom = math.max(position.zoom, _heading3dZoom);
+    } else {
+      zoom = _zoomBeforeHeading3d ?? position.zoom;
+      _zoomBeforeHeading3d = null;
     }
+    final resetBearing = _bearingResetPending;
+    _bearingResetPending = false;
     _heading3dTransitioning = true;
     try {
       await controller.animateCamera(
@@ -162,8 +167,8 @@ class _MapPageState extends ConsumerState<MapPage> {
           CameraPosition(
             target: position.target,
             zoom: zoom,
-            bearing: position.bearing,
-            tilt: wasActive ? 0 : _heading3dTilt,
+            bearing: resetBearing ? 0 : position.bearing,
+            tilt: active ? _heading3dTilt : 0,
           ),
         ),
       );
@@ -172,11 +177,28 @@ class _MapPageState extends ConsumerState<MapPage> {
     }
   }
 
-  /// 3Dヘディングモードを解除してチルトを平面に戻す。
-  /// GPSフォロー解除でボタンが消えるときに、モードだけ残らないようにする。
-  Future<void> _exitHeading3dMode() async {
+  /// ナビゲーションモードを解除する。GPSフォロー解除時に、モードだけ
+  /// 残らないようにする(カメラ遷移は isCompassMode の listen が行う)。
+  void _exitHeading3dMode() {
     if (!ref.read(mapControllerProvider).isCompassMode) return;
-    await _toggleHeading3dMode();
+    ref.read(mapControllerProvider.notifier).toggleCompassMode();
+  }
+
+  /// チルトを平面(2D)に戻す。GPSフォロー解除時に呼ばれる。
+  Future<void> _flattenCamera() async {
+    final controller = _controller;
+    final position = _lastCameraPosition;
+    if (controller == null || position == null) return;
+    if (position.tilt == 0) return;
+    await controller.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(
+          target: position.target,
+          zoom: position.zoom,
+          bearing: position.bearing,
+        ),
+      ),
+    );
   }
 
   /// 現在地へカメラを移動する(旧アプリと同じ挙動)。
@@ -258,13 +280,25 @@ class _MapPageState extends ConsumerState<MapPage> {
         previous,
         next,
       ) {
-        // GPSフォロー解除で3Dヘディングボタンが消えるため、モードも解除する。
-        if (!next) {
-          unawaited(_exitHeading3dMode());
+        if (next) {
+          // フォロー開始時は現在地へカメラを移動する。
+          unawaited(_moveToCurrentLocation());
+        } else if (ref.read(mapControllerProvider).isCompassMode) {
+          // フォロー解除時はナビゲーションモードも解除する。チルトは
+          // isCompassMode の listen が走らせる解除遷移が平面へ戻すため、
+          // ここで別のカメラ移動を重ねない(遷移が打ち切られてチルトが
+          // 残るのを防ぐ)。
+          _exitHeading3dMode();
+        } else {
+          // 手動チルト等が残っていても、GPSオフでは平面(2D)に戻す。
+          unawaited(_flattenCamera());
         }
-        // GPSボタンのタップで必ずトグルされるため、変化のたびに現在地へ
-        // カメラを移動する。
-        unawaited(_moveToCurrentLocation());
+      })
+      ..listen(mapControllerProvider.select((state) => state.isCompassMode), (
+        previous,
+        next,
+      ) {
+        unawaited(_applyHeading3dCamera(active: next));
       })
       ..listen(currentPositionProvider, (previous, next) {
         final position = next.value;
@@ -407,15 +441,16 @@ class _MapPageState extends ConsumerState<MapPage> {
           right: 12,
           child: _CompassButton(bearing: _bearing, onTap: _resetBearing),
         ),
-        // 3Dヘディングモード(実験的機能)の切替ボタン。フィーチャーフラグが
-        // 有効かつGPSフォロー中のみ、コンパスボタンの下に表示する。
+        // ナビゲーションモード(3Dヘディングモード)の切替ボタン。フィーチャー
+        // フラグが有効かつGPSフォロー中のみ、コンパスボタンの下に表示する。
         if (heading3dEnabled && mapState.isFollowingUser)
           Positioned(
             top: MediaQuery.of(context).padding.top + 68,
             right: 12,
             child: _Heading3dButton(
               isActive: mapState.isCompassMode,
-              onTap: _toggleHeading3dMode,
+              onTap: () =>
+                  ref.read(mapControllerProvider.notifier).toggleCompassMode(),
             ),
           ),
         if (isLoading)
@@ -459,10 +494,11 @@ class _MapPageState extends ConsumerState<MapPage> {
   }
 }
 
-/// 3Dヘディングモード(実験的機能)の切替ボタン。
+/// ナビゲーションモード(3Dヘディングモード)の切替ボタン。
 ///
 /// GPSフォロー中のみ表示される丸ボタン。タップでカメラをチルトさせ、
-/// 端末の向きに地図の回転を追従させるモードを切り替える。
+/// 端末の向きに地図の回転を追従させるモードを切り替える(カメラ遷移は
+/// isCompassMode の listen が行う)。
 class _Heading3dButton extends StatelessWidget {
   const _Heading3dButton({required this.isActive, required this.onTap});
 

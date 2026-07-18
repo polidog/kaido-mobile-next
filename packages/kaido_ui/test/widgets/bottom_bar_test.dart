@@ -7,6 +7,13 @@ import 'package:kaido_data/kaido_data.dart';
 import 'package:kaido_ui/router/kaido_route_paths.dart';
 import 'package:kaido_ui/widgets/bottom_bar.dart';
 
+const _testConfig = KaidoConfig(
+  appName: 'テストアプリ',
+  apiContext: 'tokaido',
+  themeColor: Color(0xFFECB404),
+  assetPrefix: 'assets',
+);
+
 /// Test double that records permission requests instead of touching the
 /// real location plugin.
 class _FakeLocationService implements LocationService {
@@ -50,7 +57,10 @@ void main() {
     );
 
     return ProviderScope(
-      overrides: [locationServiceProvider.overrideWithValue(svc)],
+      overrides: [
+        kaidoConfigProvider.overrideWithValue(_testConfig),
+        locationServiceProvider.overrideWithValue(svc),
+      ],
       child: MaterialApp.router(routerConfig: router),
     );
   }
@@ -68,13 +78,18 @@ void main() {
   ) async {
     await tester.pumpWidget(buildApp());
 
-    expect(iconColor(tester, Icons.my_location), isNull);
+    expect(iconColor(tester, Icons.navigation), Colors.grey);
 
-    await tester.tap(find.byIcon(Icons.my_location));
+    await tester.tap(find.byIcon(Icons.navigation));
     await tester.pumpAndSettle();
 
     expect(fakeLocationService.ensurePermissionCallCount, 1);
-    expect(iconColor(tester, Icons.my_location), isNotNull);
+    expect(iconColor(tester, Icons.navigation), isNot(Colors.grey));
+
+    await tester.tap(find.byIcon(Icons.navigation));
+    await tester.pumpAndSettle();
+
+    expect(iconColor(tester, Icons.navigation), Colors.grey);
   });
 
   testWidgets('GPS button shows SnackBar when permission denied', (
@@ -84,11 +99,11 @@ void main() {
         _FakeLocationService(permissionResult: LocationPermission.denied);
     await tester.pumpWidget(buildApp(locationService: deniedService));
 
-    await tester.tap(find.byIcon(Icons.my_location));
+    await tester.tap(find.byIcon(Icons.navigation));
     await tester.pumpAndSettle();
 
     expect(find.text('位置情報の権限が必要です'), findsOneWidget);
-    expect(iconColor(tester, Icons.my_location), isNull);
+    expect(iconColor(tester, Icons.navigation), Colors.grey);
   });
 
   testWidgets(
@@ -99,42 +114,26 @@ void main() {
       );
       await tester.pumpWidget(buildApp(locationService: deniedService));
 
-      await tester.tap(find.byIcon(Icons.my_location));
+      await tester.tap(find.byIcon(Icons.navigation));
       await tester.pumpAndSettle();
 
       expect(find.text('位置情報の権限が必要です'), findsOneWidget);
       expect(find.text('設定を開く'), findsOneWidget);
-      expect(iconColor(tester, Icons.my_location), isNull);
+      expect(iconColor(tester, Icons.navigation), Colors.grey);
     },
   );
-
-  testWidgets('compass button toggles compass mode', (tester) async {
-    await tester.pumpWidget(buildApp());
-
-    expect(iconColor(tester, Icons.explore), isNull);
-
-    await tester.tap(find.byIcon(Icons.explore));
-    await tester.pumpAndSettle();
-
-    expect(iconColor(tester, Icons.explore), isNotNull);
-
-    await tester.tap(find.byIcon(Icons.explore));
-    await tester.pumpAndSettle();
-
-    expect(iconColor(tester, Icons.explore), isNull);
-  });
 
   testWidgets('point visibility button toggles markerVisibilityProvider', (
     tester,
   ) async {
     await tester.pumpWidget(buildApp());
 
-    expect(iconColor(tester, Icons.place), isNotNull);
+    expect(iconColor(tester, Icons.location_on), isNot(Colors.grey));
 
-    await tester.tap(find.byIcon(Icons.place));
+    await tester.tap(find.byIcon(Icons.location_on));
     await tester.pumpAndSettle();
 
-    expect(iconColor(tester, Icons.place), isNull);
+    expect(iconColor(tester, Icons.location_on), Colors.grey);
   });
 
   testWidgets('settings button navigates to the settings route', (
