@@ -31,7 +31,7 @@ void main() {
       final routes = await source.loadRoutes('assets/json/routes.json');
 
       expect(routes, hasLength(1));
-      expect(routes.first.id, 1);
+      expect(routes.first.id, '1');
     });
 
     test('loadDetours parses bundled JSON into Detours', () async {

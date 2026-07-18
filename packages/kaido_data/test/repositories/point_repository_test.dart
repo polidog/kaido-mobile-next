@@ -18,7 +18,7 @@ void main() {
 
   const bundledPoints = [
     Point(
-      id: 99,
+      id: '99',
       title: 'バンドル',
       lat: 0,
       lng: 0,
@@ -29,7 +29,7 @@ void main() {
 
   const remotePoints = [
     Point(
-      id: 1,
+      id: '1',
       title: 'API取得',
       lat: 1,
       lng: 2,
@@ -40,7 +40,7 @@ void main() {
 
   const cachedPoints = [
     Point(
-      id: 2,
+      id: '2',
       title: 'キャッシュ',
       lat: 3,
       lng: 4,

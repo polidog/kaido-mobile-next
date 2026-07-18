@@ -5,7 +5,7 @@ void main() {
   group('Point', () {
     test('fromJson/toJson round trip', () {
       const point = Point(
-        id: 1,
+        id: '1',
         title: '日本橋',
         lat: 35.6835,
         lng: 139.7742,

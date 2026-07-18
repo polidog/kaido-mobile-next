@@ -7,7 +7,7 @@ import 'package:kaido_data/models/route_point.dart';
 extension SpotDtoMapper on SpotDto {
   /// Converts this DTO into a domain [Point].
   Point toPoint() => Point(
-    id: id,
+    id: id.toString(),
     title: title,
     lat: lat,
     lng: lng,
@@ -27,7 +27,13 @@ extension SpotDtoListMapper on List<SpotDto> {
 extension RoutePointDtoMapper on RoutePointDto {
   /// Converts this DTO into a domain [RoutePoint].
   RoutePoint toRoutePoint() =>
-      RoutePoint(id: id, lat: lat, lng: lng, order: order, groupId: groupId);
+      RoutePoint(
+        id: id.toString(),
+        lat: lat,
+        lng: lng,
+        order: order,
+        groupId: groupId?.toString(),
+      );
 }
 
 /// Converts lists of [RoutePointDto] into lists of domain [RoutePoint]
@@ -50,7 +56,7 @@ extension DetourRoutePointDtoMapper on DetourRoutePointDto {
 extension DetourDtoMapper on DetourDto {
   /// Converts this DTO into a domain [Detour].
   Detour toDetour() => Detour(
-    id: id,
+    id: id.toString(),
     name: name,
     routes: routes.map((route) => route.toDetourRoutePoint()).toList(),
   );

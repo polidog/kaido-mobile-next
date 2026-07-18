@@ -23,7 +23,7 @@ class _FakePoints extends Points {
   @override
   Future<List<Point>> build() async => const [
     Point(
-      id: 42,
+      id: '42',
       title: 'テスト地点',
       lat: 35,
       lng: 139,

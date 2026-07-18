@@ -5,6 +5,7 @@ import 'package:kaido_api/interceptors/auth_interceptor.dart';
 import 'package:kaido_api/interceptors/logging_interceptor.dart';
 import 'package:kaido_api/interceptors/retry_interceptor.dart';
 import 'package:kaido_api/models/detour_dto.dart';
+import 'package:kaido_api/models/map_summary_dto.dart';
 import 'package:kaido_api/models/route_point_dto.dart';
 import 'package:kaido_api/models/spot_dto.dart';
 import 'package:kaido_api/result.dart';
@@ -64,6 +65,18 @@ class KaidoApiService {
   KaidoApiService(this._client);
 
   final KaidoApiClient _client;
+
+  /// Fetches the list of available maps (街道).
+  Future<ApiResult<List<MapSummaryDto>>> getMaps() async {
+    try {
+      final result = await _client.getMaps();
+      return ApiSuccess(result.maps);
+    } on DioException catch (e, st) {
+      return ApiFailure(e, st);
+    } on Object catch (e, st) {
+      return ApiFailure(e, st);
+    }
+  }
 
   /// Fetches spots for the given [context].
   Future<ApiResult<List<SpotDto>>> getSpots(String context) async {

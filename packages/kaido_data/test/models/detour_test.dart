@@ -5,7 +5,7 @@ void main() {
   group('Detour', () {
     test('fromJson/toJson round trip', () {
       const detour = Detour(
-        id: 1,
+        id: '1',
         name: '寄り道ルート',
         routes: [
           DetourRoutePoint(lat: 35.6835, lng: 139.7742, number: 1),

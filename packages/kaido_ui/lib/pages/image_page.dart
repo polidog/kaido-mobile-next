@@ -39,13 +39,10 @@ class ImagePage extends ConsumerWidget {
         ),
       ),
       data: (points) {
-        final pointId = int.tryParse(id);
-        final point = pointId == null
-            ? null
-            : points.cast<Point?>().firstWhere(
-                (p) => p?.id == pointId,
-                orElse: () => null,
-              );
+        final point = points.cast<Point?>().firstWhere(
+          (p) => p?.id == id,
+          orElse: () => null,
+        );
         final image = point?.image;
         if (point == null || image == null || image.isEmpty) {
           return Scaffold(

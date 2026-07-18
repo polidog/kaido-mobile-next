@@ -15,9 +15,9 @@ void main() {
   late Directory tempDir;
   late FileCacheDataSource fileCache;
 
-  const bundledRoutes = [RoutePoint(id: 99, lat: 0, lng: 0)];
-  const remoteRoutes = [RoutePoint(id: 1, lat: 1, lng: 2)];
-  const cachedRoutes = [RoutePoint(id: 2, lat: 3, lng: 4)];
+  const bundledRoutes = [RoutePoint(id: '99', lat: 0, lng: 0)];
+  const remoteRoutes = [RoutePoint(id: '1', lat: 1, lng: 2)];
+  const cachedRoutes = [RoutePoint(id: '2', lat: 3, lng: 4)];
 
   setUp(() async {
     tempDir = await Directory.systemTemp.createTemp('route_repo_test');

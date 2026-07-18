@@ -9,7 +9,7 @@ void main() {
     test('creates one polyline per detour', () {
       const detours = [
         Detour(
-          id: 1,
+          id: '1',
           name: 'A',
           routes: [
             DetourRoutePoint(lat: 1, lng: 1, number: 1),
@@ -17,7 +17,7 @@ void main() {
           ],
         ),
         Detour(
-          id: 2,
+          id: '2',
           name: 'B',
           routes: [
             DetourRoutePoint(lat: 3, lng: 3, number: 1),
@@ -38,7 +38,7 @@ void main() {
     test('sorts route points by number', () {
       const detours = [
         Detour(
-          id: 1,
+          id: '1',
           name: 'A',
           routes: [
             DetourRoutePoint(lat: 3, lng: 3, number: 2),
@@ -60,7 +60,7 @@ void main() {
     test('treats a null number as 0', () {
       const detours = [
         Detour(
-          id: 1,
+          id: '1',
           name: 'A',
           routes: [
             DetourRoutePoint(lat: 1, lng: 1, number: 1),
@@ -76,9 +76,9 @@ void main() {
 
     test('skips detours with fewer than two route points', () {
       const detours = [
-        Detour(id: 1, name: 'empty'),
+        Detour(id: '1', name: 'empty'),
         Detour(
-          id: 2,
+          id: '2',
           name: 'single',
           routes: [DetourRoutePoint(lat: 1, lng: 1, number: 1)],
         ),
@@ -90,7 +90,7 @@ void main() {
     test('applies the given color and width', () {
       const detours = [
         Detour(
-          id: 1,
+          id: '1',
           name: 'A',
           routes: [
             DetourRoutePoint(lat: 1, lng: 1, number: 1),
@@ -108,7 +108,7 @@ void main() {
     test('defaults to green with width 3', () {
       const detours = [
         Detour(
-          id: 1,
+          id: '1',
           name: 'A',
           routes: [
             DetourRoutePoint(lat: 1, lng: 1, number: 1),
