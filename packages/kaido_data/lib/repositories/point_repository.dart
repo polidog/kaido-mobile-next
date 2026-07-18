@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:kaido_api/kaido_api.dart';
 import 'package:kaido_data/datasources/file_cache_data_source.dart';
 import 'package:kaido_data/datasources/local_bundle_data_source.dart';
@@ -6,10 +8,11 @@ import 'package:kaido_data/models/point.dart';
 
 /// Cache-first repository for [Point] data.
 ///
-/// Returns file-cached data immediately when available and refreshes the
-/// cache from the remote API in the background (picked up on the next
-/// read). When no cache exists — or a remote fetch is forced — fetches
-/// from the remote API, falling back to cache/bundle on failure.
+/// Returns file-cached data immediately when available. When the cache is
+/// older than [_staleThreshold], a background revalidation syncs fresh data
+/// from the remote database (picked up on the next read). When no cache
+/// exists — or a remote fetch is forced — fetches from the remote API,
+/// falling back to cache/bundle on failure.
 class PointRepository {
   /// Creates a [PointRepository].
   PointRepository({
@@ -27,6 +30,8 @@ class PointRepository {
   final LocalBundleDataSource _bundle;
   final String _assetPrefix;
 
+  static const _staleThreshold = Duration(days: 30);
+
   /// Gets the points for the given [context].
   ///
   /// Set [forceRemote] to bypass the cache-first path and wait for the
@@ -38,6 +43,9 @@ class PointRepository {
     if (!forceRemote) {
       final cached = await _fileCache.readPoints(context);
       if (cached != null && cached.isNotEmpty) {
+        if (await _fileCache.isStale(context, 'points', _staleThreshold)) {
+          unawaited(_revalidateCache(context));
+        }
         return cached;
       }
     }
@@ -47,6 +55,17 @@ class PointRepository {
       return data;
     }
     return _fallback(context);
+  }
+
+  Future<void> _revalidateCache(String context) async {
+    final result = await _remote.fetch(context);
+    if (result case ApiSuccess(:final data)) {
+      try {
+        await _fileCache.cachePoints(context, data);
+      } on Exception {
+        // ベストエフォートのバックグラウンド更新なので、失敗は無視する。
+      }
+    }
   }
 
   Future<List<Point>> _fallback(String context) async {

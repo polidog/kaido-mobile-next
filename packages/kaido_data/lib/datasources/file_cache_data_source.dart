@@ -118,4 +118,17 @@ class FileCacheDataSource {
   /// no cache exists or it cannot be parsed.
   Future<List<Detour>?> readDetours(String context) =>
       _read(context, 'detours', _decodeDetours);
+
+  /// Returns `true` if the cache file for [context]/[name] is older than
+  /// [maxAge], or if it does not exist.
+  Future<bool> isStale(String context, String name, Duration maxAge) async {
+    try {
+      final file = await _fileFor(context, name);
+      if (!file.existsSync()) return true;
+      final modified = file.lastModifiedSync();
+      return DateTime.now().difference(modified) > maxAge;
+    } on FileSystemException {
+      return true;
+    }
+  }
 }
