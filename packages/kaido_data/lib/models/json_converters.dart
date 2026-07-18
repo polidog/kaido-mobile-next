@@ -6,7 +6,16 @@
 library;
 
 /// Converts a JSON id (int or String) to a String id.
-String jsonIdToString(Object? value) => value?.toString() ?? '';
+///
+/// Throws a [FormatException] when [value] is null so that records with
+/// missing ids are detected at parse time instead of silently colliding
+/// on an empty-string id.
+String jsonIdToString(Object? value) {
+  if (value == null) {
+    throw const FormatException('Required id is missing (null)');
+  }
+  return value.toString();
+}
 
 /// Converts a nullable JSON id (int or String) to a nullable String id.
 String? jsonIdToStringOrNull(Object? value) => value?.toString();

@@ -37,9 +37,10 @@
 - [x] **env/production.json** — 作成済み（2026-07-17）。API_BASE_URL は
       `https://kaido-web-next.vercel.app`、Maps キーは gokaido-1086 の既存キー
       （iOS: 「iOSアプリ用」/ Android: 「2023Android本番用」）を使用。
-      ⚠️ ただしアプリが使う `/api/v1/maps/{context}/spots|routes|detours` は
-      バックエンド未実装（404）。kaido-web-next 側の実装・デプロイ完了が
-      リリースの前提条件（別セッションで対応中）
+      データ取得は Turso embedded replica 方式（docs/turso-integration.md）に
+      移行済みのため、REST の spots/routes/detours エンドポイントは不要。
+      前提条件は「`/api/v1/maps` が databaseUrl を返すこと」と
+      「`TURSO_AUTH_TOKEN`（読み取り専用）が env に設定されていること」の2点
 - [x] **fastlane** — インストール済み（brew, 2.237.0）
 - [x] **oshudo の App Store Connect アプリ登録** — 登録済みを確認（2026-07-17、
       ASC API のアプリ一覧に `com.ground-base.oshudo` が存在）

@@ -171,8 +171,7 @@ class TursoDetoursDataSource implements DetoursRemoteDataSource {
           );
         }).toList();
       },
-      // 迂回路が0件のマップは正常系なので、同期失敗時のみ失敗扱いにする。
-      isEmpty: (data) => false,
+      isEmpty: (data) => data.isEmpty,
     );
   }
 }

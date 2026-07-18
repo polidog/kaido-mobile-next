@@ -32,10 +32,11 @@ LocalBundleDataSource localBundleDataSource(Ref ref) {
 /// Provides the [TursoSettings] built from `--dart-define` values.
 @riverpod
 TursoSettings tursoSettings(Ref ref) {
-  assert(
-    _tursoAuthToken.isNotEmpty,
-    'TURSO_AUTH_TOKEN must be set via --dart-define',
-  );
+  // assert はリリースビルドで無効化されるため、後段の libsql 認証エラー
+  // ではなく起動直後に原因が分かるよう実行時チェックにする。
+  if (_tursoAuthToken.isEmpty) {
+    throw StateError('TURSO_AUTH_TOKEN must be set via --dart-define');
+  }
   return const TursoSettings(authToken: _tursoAuthToken);
 }
 

@@ -40,6 +40,12 @@ class TursoMapDatabase {
   final TursoSettings _settings;
 
   final Map<String, Future<LibsqlClient>> _clients = {};
+  final Map<String, Future<void>> _inflightSyncs = {};
+  final Map<String, DateTime> _lastSyncedAt = {};
+
+  /// この間隔以内の再同期要求はスキップする（points/routes/detours の
+  /// 3プロバイダが起動時に並行 fetch しても同期は1回で済むように）。
+  static const _syncThrottle = Duration(seconds: 30);
 
   static String _urlPrefsKey(String context) => 'turso_sync_url_$context';
 
@@ -74,11 +80,24 @@ class TursoMapDatabase {
 
   /// Syncs the replica for [context] with the remote database.
   ///
-  /// Throws when the sync fails (e.g. offline); callers decide whether
-  /// stale local data is acceptable.
-  Future<void> sync(String context) async {
-    final client = await open(context);
-    await client.sync();
+  /// Concurrent calls for the same [context] share a single in-flight
+  /// sync, and calls within [_syncThrottle] of the last successful sync
+  /// are no-ops. Throws when the sync fails (e.g. offline); callers
+  /// decide whether stale local data is acceptable.
+  Future<void> sync(String context) {
+    final last = _lastSyncedAt[context];
+    if (last != null && DateTime.now().difference(last) < _syncThrottle) {
+      return Future.value();
+    }
+    return _inflightSyncs.putIfAbsent(context, () async {
+      try {
+        final client = await open(context);
+        await client.sync();
+        _lastSyncedAt[context] = DateTime.now();
+      } finally {
+        unawaited(_inflightSyncs.remove(context));
+      }
+    });
   }
 
   /// Runs a read-only [sql] query against the replica for [context].
@@ -95,7 +114,13 @@ class TursoMapDatabase {
     final override = _settings.syncUrlOverride;
     if (override != null && override.isNotEmpty) return override;
 
+    // キャッシュ済み URL を優先する。API 呼び出しを待たないことで
+    // オフライン時もタイムアウト待ちなしで起動できる（URL が変わる
+    // ことは稀で、変わった場合は sync 失敗後の再起動で再解決される）。
     final prefs = await SharedPreferences.getInstance();
+    final cached = prefs.getString(_urlPrefsKey(context));
+    if (cached != null && cached.isNotEmpty) return cached;
+
     final result = await _apiService.getMaps();
     if (result case ApiSuccess(:final data)) {
       final map = data
@@ -107,9 +132,6 @@ class TursoMapDatabase {
         return url;
       }
     }
-    // API が使えないときは前回解決した URL で開く（オフライン起動）。
-    final cached = prefs.getString(_urlPrefsKey(context));
-    if (cached != null && cached.isNotEmpty) return cached;
     throw StateError(
       'Turso database URL could not be resolved for context "$context"',
     );
