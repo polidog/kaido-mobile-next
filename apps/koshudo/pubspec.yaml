@@ -1,7 +1,7 @@
 name: koshudo
 description: "甲州道中四十四次アプリ"
 publish_to: none
-version: 4.0.0+31
+version: 4.0.0+32
 
 environment:
   sdk: ^3.12.0
