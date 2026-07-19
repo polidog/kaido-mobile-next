@@ -9,7 +9,7 @@ part 'points_provider.g.dart';
 @riverpod
 Map<String, Point> pointsById(Ref ref) {
   final points = ref.watch(pointsProvider).value;
-  if (points == null) return const {};
+  if (points == null) return const <String, Point>{};
   return {for (final p in points) p.id: p};
 }
 
