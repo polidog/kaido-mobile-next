@@ -17,51 +17,51 @@ class InfoPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final pointsAsync = ref.watch(pointsProvider);
+    final pointsById = ref.watch(pointsByIdProvider);
     final config = ref.watch(kaidoConfigProvider);
 
-    return pointsAsync.when(
-      loading: () => Scaffold(
+    if (pointsAsync.isLoading) {
+      return Scaffold(
         appBar: AppBar(title: const Text('詳細')),
         body: const Center(child: CircularProgressIndicator()),
-      ),
-      error: (error, stackTrace) => Scaffold(
+      );
+    }
+    if (pointsAsync.hasError) {
+      return Scaffold(
         appBar: AppBar(title: const Text('詳細')),
-        body: Center(child: Text('読み込みに失敗しました: $error')),
-      ),
-      data: (points) {
-        final point = points.cast<Point?>().firstWhere(
-          (p) => p?.id == id,
-          orElse: () => null,
-        );
-        if (point == null) {
-          return Scaffold(
-            appBar: AppBar(title: const Text('詳細')),
-            body: const Center(child: Text('ポイントが見つかりません')),
-          );
-        }
-        return Scaffold(
-          appBar: AppBar(
-            title: Text(point.category),
-            actions: [
-              TextButton(
-                onPressed: () => context.push(
-                  '/contact',
-                  extra: ContactPageArgs(
-                    subject: point.title,
-                    location: LatLng(point.lat, point.lng),
-                  ),
-                ),
-                child: const Text('問合せ'),
+        body: Center(
+          child: Text('読み込みに失敗しました: ${pointsAsync.error}'),
+        ),
+      );
+    }
+    final point = pointsById[id];
+    if (point == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('詳細')),
+        body: const Center(child: Text('ポイントが見つかりません')),
+      );
+    }
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(point.category),
+        actions: [
+          TextButton(
+            onPressed: () => context.push(
+              '/contact',
+              extra: ContactPageArgs(
+                subject: point.title,
+                location: LatLng(point.lat, point.lng),
               ),
-            ],
+            ),
+            child: const Text('問合せ'),
           ),
-          body: PointInfoCard(
-            point: point,
-            assetPrefix: config.assetPrefix,
-            onImageTap: () => context.push('/info/$id/image'),
-          ),
-        );
-      },
+        ],
+      ),
+      body: PointInfoCard(
+        point: point,
+        assetPrefix: config.assetPrefix,
+        onImageTap: () => context.push('/info/$id/image'),
+      ),
     );
   }
 }

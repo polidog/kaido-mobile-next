@@ -66,8 +66,8 @@ class TursoMapDatabase {
     final syncUrl = await _resolveSyncUrl(context);
     final dir = await getApplicationSupportDirectory();
     final tursoDir = Directory('${dir.path}/turso');
-    if (!tursoDir.existsSync()) {
-      tursoDir.createSync(recursive: true);
+    if (!await tursoDir.exists()) {
+      await tursoDir.create(recursive: true);
     }
     final client = LibsqlClient.replica(
       '${tursoDir.path}/$context.db',

@@ -5,6 +5,14 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'points_provider.g.dart';
 
+/// Index of [Point]s by their ID for O(1) lookup.
+@riverpod
+Map<String, Point> pointsById(Ref ref) {
+  final points = ref.watch(pointsProvider).value;
+  if (points == null) return const {};
+  return {for (final p in points) p.id: p};
+}
+
 /// Manages fetching and caching of [Point] data for the current app.
 @riverpod
 class Points extends _$Points {
