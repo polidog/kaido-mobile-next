@@ -32,9 +32,19 @@ class PointInfoCard extends StatelessWidget {
     return AssetImage('$assetPrefix/images/$image');
   }
 
+  /// Display height for the detail image (logical pixels).
+  static const double _imageHeight = 220;
+
   @override
   Widget build(BuildContext context) {
-    final imageProvider = _imageProvider;
+    final rawImageProvider = _imageProvider;
+    final imageProvider = rawImageProvider == null
+        ? null
+        : ResizeImage.resizeIfNeeded(
+            null,
+            (_imageHeight * MediaQuery.devicePixelRatioOf(context)).round(),
+            rawImageProvider,
+          );
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -47,7 +57,7 @@ class PointInfoCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
                 child: Image(
                   image: imageProvider,
-                  height: 220,
+                  height: _imageHeight,
                   width: double.infinity,
                   fit: BoxFit.cover,
                 ),

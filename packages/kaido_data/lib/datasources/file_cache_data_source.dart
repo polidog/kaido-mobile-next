@@ -84,7 +84,7 @@ class FileCacheDataSource {
   ) async {
     try {
       final file = await _fileFor(context, name);
-      if (!file.existsSync()) return null;
+      if (!await file.exists()) return null;
       final raw = await file.readAsString();
       return await compute(decode, raw);
     } on FileSystemException {
@@ -124,8 +124,8 @@ class FileCacheDataSource {
   Future<bool> isStale(String context, String name, Duration maxAge) async {
     try {
       final file = await _fileFor(context, name);
-      if (!file.existsSync()) return true;
-      final modified = file.lastModifiedSync();
+      if (!await file.exists()) return true;
+      final modified = await file.lastModified();
       return DateTime.now().difference(modified) > maxAge;
     } on FileSystemException {
       return true;
